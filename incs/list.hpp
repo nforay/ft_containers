@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/16 23:33:56 by nforay            #+#    #+#             */
-/*   Updated: 2021/06/20 03:09:09 by nforay           ###   ########.fr       */
+/*   Updated: 2021/06/21 01:01:10 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define LIST_HPP
 
 # include <memory>
+# include "list_iterators.hpp"
 
 namespace ft
 {
@@ -29,6 +30,13 @@ namespace ft
 	template <class T, class Alloc = std::allocator<T> >
 	class list
 	{
+		struct Node
+			{
+				T			val;
+				Node*		next;
+				Node*		prev;
+			};
+
 		public:
 
 			typedef T											value_type;
@@ -37,21 +45,15 @@ namespace ft
 			typedef typename allocator_type::const_reference	const_reference;
 			typedef typename allocator_type::pointer			pointer;
 			typedef typename allocator_type::const_pointer		const_pointer;
-			typedef List_iterator<T>							iterator;
-			typedef List_const_iterator<T>						const_iterator;
-			typedef List_const_reverse_iterator<T>				const_reverse_iterator;
-			typedef List_reverse_iterator<T>					reverse_iterator;
+			typedef List_iterator<T, Node>						iterator;
+			typedef List_const_iterator<T, Node>				const_iterator;
+			typedef List_const_reverse_iterator<T, Node>		const_reverse_iterator;
+			typedef List_reverse_iterator<T, Node>				reverse_iterator;
 			typedef ptrdiff_t									difference_type;
 			typedef size_t										size_type;
 
 		private:
 
-			struct Node
-			{
-				T			val;
-				Node*		next;
-				Node*		prev;
-			};
 			Node*			_head;
 			size_type		_size;
 			allocator_type	_alloc;
@@ -692,7 +694,7 @@ namespace ft
 			 * function pointer or a function object.
 			*/
 			template <class Compare>
-			void sort (Compare comp)
+			void sort(Compare comp)
 			{
 				
 			}
@@ -716,63 +718,67 @@ namespace ft
 			*/
 			allocator_type get_allocator() const
 			{
-				
+				return (_alloc);
 			}
 
 /*
 ** -------------------------------- OVERLOADS ----------------------------------
 */
 
-			template <class T, class Alloc>
-			bool operator==(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
+			friend bool operator<(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
 			{
-				
-			}
+				const_iterator itl = lhs.begin();
+				const_iterator itr = rhs.begin();
 
-			template <class T, class Alloc>
-			bool operator!=(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
-			{
-				
-			}
-
-			//note: only 1 friend needed
-			template <class T, class Alloc>
-			bool operator<(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
-			{
-				
-			}
-
-			template <class T, class Alloc>
-			bool operator<=(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
-			{
-				
-			}
-
-			template <class T, class Alloc>
-			bool operator>(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
-			{
-				
-			}
-
-			template <class T, class Alloc>
-			bool operator>=(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
-			{
-				
-			}
-
-			/**
-			 * @brief The contents of container x are exchanged with those of y.
-			 * Both container objects must be of the same type (same template
-			 * parameters), although sizes may differ.
-			 * @param x,y list containers of the same type (i.e., having both
-			 * the same template parameters, T and Alloc).
-			*/
-			template <class T, class Alloc>
-			void swap(list<T,Alloc>& x, list<T,Alloc>& y)
-			{
-				
+				for (; itl != lhs.end() && itr != rhs.end(); itl++, itr++)
+					if (*itl < *itr)
+						return true;
+				return (lhs.size() < rhs.size());
 			}
 	};
+
+	template <class T, class Alloc>
+	bool operator==(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
+	{
+		return (!(lhs < rhs || rhs < lhs));
+	}
+
+	template <class T, class Alloc>
+	bool operator!=(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
+	{
+		return !(lhs == rhs);
+	}
+
+	template <class T, class Alloc>
+	bool operator<=(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
+	{
+		return !(rhs < lhs);
+	}
+
+	template <class T, class Alloc>
+	bool operator>(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
+	{
+		return (rhs < lhs);
+	}
+
+	template <class T, class Alloc>
+	bool operator>=(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
+	{
+		return !(lhs < rhs);
+	}
+
+	/**
+	 * @brief The contents of container x are exchanged with those of y.
+	 * Both container objects must be of the same type (same template
+	 * parameters), although sizes may differ.
+	 * @param x,y list containers of the same type (i.e., having both
+	 * the same template parameters, T and Alloc).
+	*/
+	template <class T, class Alloc>
+	void swap(list<T,Alloc>& x, list<T,Alloc>& y)
+	{
+		
+	}
 }
 
 #endif /* ********************************************************** LIST_HPP */
