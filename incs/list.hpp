@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/16 23:33:56 by nforay            #+#    #+#             */
-/*   Updated: 2021/06/23 04:21:15 by nforay           ###   ########.fr       */
+/*   Updated: 2021/06/23 18:12:03 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,11 +32,11 @@ namespace ft
 	class list
 	{
 		struct Node
-			{
-				T			val;
-				Node*		next;
-				Node*		prev;
-			};
+		{
+			T			val;
+			Node*		next;
+			Node*		prev;
+		};
 
 		public:
 
@@ -91,7 +91,11 @@ namespace ft
                 const allocator_type& alloc = allocator_type())
 			: _size(0), _alloc(alloc), _head(NULL)
 			{
-				
+				_head = Node_allocator(_alloc).allocate(1);
+				_head->next = _head;
+				_head->prev = _head;
+				while (n--)
+					this->push_front(val);
 			}
 
 			/**
@@ -111,7 +115,11 @@ namespace ft
 				const allocator_type& alloc = allocator_type())
 			: _size(0), _alloc(alloc), _head(NULL)
 			{
-				
+				_head = Node_allocator(_alloc).allocate(1);
+				_head->next = _head;
+				_head->prev = _head;
+				for (; first != last; first++)
+					this->push_back(*first);
 			}
 
 			/**
@@ -124,7 +132,10 @@ namespace ft
 			list(const list& x)
 			: _size(0), _alloc(x._alloc), _head(NULL)
 			{
-				
+				_head = Node_allocator(_alloc).allocate(1);
+				_head->next = _head;
+				_head->prev = _head;
+				*this = x;
 			}
 
 			/**
@@ -134,7 +145,9 @@ namespace ft
 			*/
 			~list()
 			{
-				
+				while (!empty())
+					this->pop_front();
+				Node_allocator(_alloc).deallocate(_head, 1);
 			}
 
 			/**
@@ -147,7 +160,8 @@ namespace ft
 			*/
 			list& operator=(const list& x)
 			{
-				
+				this->assign(x.begin(), x.end());
+				return *this;
 			}
 
 /*
@@ -176,7 +190,7 @@ namespace ft
 			*/
 			const_iterator begin() const
 			{
-				
+				return (const_iterator(_head->next));
 			}
 
 			/**
@@ -188,7 +202,7 @@ namespace ft
 			*/
 			iterator end()
 			{
-				
+				return (iterator(_head));
 			}
 
 			/**
@@ -200,7 +214,7 @@ namespace ft
 			*/
 			const_iterator end() const
 			{
-				
+				return (const_iterator(_head));
 			}
 
 			/**
@@ -214,7 +228,7 @@ namespace ft
 			*/
 			reverse_iterator rbegin()
 			{
-				
+				return (reverse_iterator(_head->prev));
 			}
 
 			/**
@@ -228,7 +242,35 @@ namespace ft
 			*/
 			const_reverse_iterator rbegin() const
 			{
-				
+				return (const_reverse_iterator(_head->prev));
+			}
+
+			/**
+			 * @brief Returns a reverse iterator pointing to the theoretical
+			 * element preceding the first element in the list container (which
+			 * is considered its reverse end). The range between list::rbegin
+			 * and list::rend contains all the elements of the container
+			 * (in reverse order).
+			 * @return A reverse_iterator to the reverse end of the sequence
+			 * container.
+			*/
+			reverse_iterator rend()
+			{
+				return (reverse_iterator(_head));
+			}
+
+			/**
+			 * @brief Returns a const reverse iterator pointing to the
+			 * theoretical element preceding the first element in the list
+			 * container (which is considered its reverse end). The range
+			 * between list::rbegin and list::rend contains all the elements of
+			 * the container (in reverse order).
+			 * @return A const_reverse_iterator to the reverse end of the
+			 * sequence container.
+			*/
+			const_reverse_iterator rend() const
+			{
+				return (const_reverse_iterator(_head));
 			}
 
 /*
@@ -330,7 +372,19 @@ namespace ft
 			template <class InputIterator>
 			void assign(InputIterator first, InputIterator last)
 			{
-				
+				size_type	i = 0;
+				for (iterator it = first; it != last; ++it, ++i, ++first)
+				{
+					if (i >= this->size())
+						this->push_back(*first);
+					else
+					{
+						Node_allocator(_alloc).destroy(&(*it));
+						Node_allocator(_alloc).construct(&(*it), *first);
+					}
+				}
+				while (this->size() > i)
+					this->pop_back();
 			}
 
 			/**
@@ -344,7 +398,19 @@ namespace ft
 			*/
 			void assign(size_type n, const value_type& val)
 			{
-				
+				size_type	i = 0;
+				for (iterator it = this->begin(); i < n; ++it, ++i)
+				{
+					if (i >= this->size())
+						this->push_back(val);
+					else
+					{
+						Node_allocator(_alloc).destroy(&(*it));
+						Node_allocator(_alloc).construct(&(*it), val);
+					}
+				}
+				while (this->size() > i)
+					this->pop_back();
 			}
 
 			/**
@@ -371,7 +437,7 @@ namespace ft
 			*/
 			void pop_front()
 			{
-				if (!empty())
+				if (!this->empty())
 				{
 					Node *element = _head->next;
 					_head->next = element->next;
@@ -407,7 +473,7 @@ namespace ft
 			*/
 			void pop_back()
 			{
-				if (!empty())
+				if (!this->empty())
 				{
 					Node *element = _head->prev;
 					_head->prev = element->prev;
@@ -419,16 +485,24 @@ namespace ft
 			}
 
 			/**
-			 * @brief The container is extended by inserting new elements before
-			 * the element at the specified position. This effectively increases
-			 * the list size by the amount of elements inserted.
-			 * @param position Position in the container where the new elements
-			 * are inserted.
-			 * @param val Value to be copied or moved to the inserted elements.
+			 * @brief The container is extended by inserting a new element
+			 * before the element at the specified position. This effectively
+			 * increases the list size by one.
+			 * @param position Position in the container where the new element
+			 * is inserted.
+			 * @param val Value to be copied or moved to the inserted element.
+			 * @return An iterator that points to the newly inserted element.
 			*/
 			iterator insert(iterator position, const value_type& val)
 			{
-				
+				Node *element = Node_allocator(_alloc).allocate(1);
+				Node_allocator(_alloc).construct(&element->val, val);
+				element->next = position.getNode()->prev->next;
+				element->prev = position.getNode()->prev;
+				element->prev->next = element;
+				element->next->prev = element;
+				_size++;
+				return (iterator(element));
 			}
 
 			/**
@@ -443,7 +517,10 @@ namespace ft
 			*/
 			void insert(iterator position, size_type n, const value_type& val)
 			{
-				
+				while (n--)
+				{
+					position = this->insert(position, val);
+				}
 			}
 
 			/**
@@ -461,7 +538,11 @@ namespace ft
 			void insert(iterator position, InputIterator first,
 				InputIterator last)
 			{
-				
+				for (; first != last; first++)
+				{
+					position = this->insert(position, *first);
+					position++;
+				}
 			}
 
 			/**
@@ -476,7 +557,14 @@ namespace ft
 			*/
 			iterator erase(iterator position)
 			{
-				
+				Node *element = position.getNode();
+				position++;
+				element->prev->next = element->next;
+				element->next->prev = element->prev;
+				Node_allocator(_alloc).destroy(&element->val);
+				Node_allocator(_alloc).deallocate(element, 1);
+				_size--;
+				return (position);
 			}
 
 			/**
@@ -493,7 +581,9 @@ namespace ft
 			*/
 			iterator erase(iterator first, iterator last)
 			{
-				
+				while (first != last)
+					this->erase(first++);
+				return (last);
 			}
 
 			/**
@@ -509,7 +599,15 @@ namespace ft
 			*/
 			void swap(list& x)
 			{
-				
+				Node*			tmp_head = _head;
+				size_type		tmp_size = _size;
+				allocator_type	tmp_alloc = _alloc;
+				_head = x._head;
+				_size = x._size;
+				_alloc = x._alloc;
+				x._head = tmp_head;
+				x._size = tmp_size;
+				x._alloc = tmp_alloc;
 			}
 
 			/**

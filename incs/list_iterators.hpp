@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/20 19:28:07 by nforay            #+#    #+#             */
-/*   Updated: 2021/06/22 18:29:40 by nforay           ###   ########.fr       */
+/*   Updated: 2021/06/23 16:59:11 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@ namespace ft
 			: m_node(from.m_node) {}
 			~List_iterator() {}
 
+			NodePtr	getNode() const { return m_node; }
 			List_iterator& operator=(const List_iterator& it)
 			{
 				m_node = it.m_node;
