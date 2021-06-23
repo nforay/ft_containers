@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/16 23:33:56 by nforay            #+#    #+#             */
-/*   Updated: 2021/06/21 01:01:10 by nforay           ###   ########.fr       */
+/*   Updated: 2021/06/23 04:21:15 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 # define LIST_HPP
 
 # include <memory>
+# include <limits>
 # include "list_iterators.hpp"
 
 namespace ft
@@ -41,6 +42,8 @@ namespace ft
 
 			typedef T											value_type;
 			typedef Alloc										allocator_type;
+			typedef typename Alloc::template
+			rebind<Node>::other									Node_allocator;
 			typedef typename allocator_type::reference			reference;
 			typedef typename allocator_type::const_reference	const_reference;
 			typedef typename allocator_type::pointer			pointer;
@@ -69,7 +72,9 @@ namespace ft
 			explicit list(const allocator_type& alloc = allocator_type())
 			: _size(0), _alloc(alloc), _head(NULL)
 			{
-				
+				_head = Node_allocator(_alloc).allocate(1);
+				_head->next = _head;
+				_head->prev = _head;
 			}
 
 			/**
@@ -158,7 +163,7 @@ namespace ft
 			*/
 			iterator begin()
 			{
-				
+				return (iterator(_head->next));
 			}
 
 			/**
@@ -237,7 +242,7 @@ namespace ft
 			*/
 			bool empty() const
 			{
-				
+				return (_size == 0);
 			}
 
 			/**
@@ -246,7 +251,7 @@ namespace ft
 			*/
 			size_type size() const
 			{
-				
+				return (_size);
 			}
 
 			/**
@@ -257,7 +262,7 @@ namespace ft
 			*/
 			size_type max_size() const
 			{
-				
+				return (std::numeric_limits<size_type>::max() / sizeof(value_type));
 			}
 
 /*
@@ -272,7 +277,7 @@ namespace ft
 			*/
 			reference front()
 			{
-				
+				return (_head->next->val);
 			}
 
 			/**
@@ -284,7 +289,7 @@ namespace ft
 			*/
 			const_reference front() const
 			{
-				
+				return (_head->next->val);
 			}
 
 			/**
@@ -295,7 +300,7 @@ namespace ft
 			*/
 			reference back()
 			{
-				
+				return (_head->prev->val);
 			}
 
 			/**
@@ -306,7 +311,7 @@ namespace ft
 			*/
 			const_reference back() const
 			{
-				
+				return (_head->prev->val);
 			}
 
 /*
@@ -350,7 +355,13 @@ namespace ft
 			*/
 			void push_front(const value_type& val)
 			{
-				
+				Node *element = Node_allocator(_alloc).allocate(1);
+				Node_allocator(_alloc).construct(&element->val, val);
+				element->next = _head->next;
+				element->next->prev = element;
+				element->prev = _head;
+				_head->next = element;
+				_size++;
 			}
 
 			/**
@@ -360,7 +371,15 @@ namespace ft
 			*/
 			void pop_front()
 			{
-				
+				if (!empty())
+				{
+					Node *element = _head->next;
+					_head->next = element->next;
+					_head->next->prev = _head;
+					Node_allocator(_alloc).destroy(&element->val);
+					Node_allocator(_alloc).deallocate(element, 1);
+					_size--;
+				}
 			}
 
 			/**
@@ -372,7 +391,13 @@ namespace ft
 			*/
 			void push_back(const value_type& val)
 			{
-				
+				Node *element = Node_allocator(_alloc).allocate(1);
+				Node_allocator(_alloc).construct(&element->val, val);
+				element->next = _head;
+				element->prev = _head->prev;
+				element->prev->next = element;
+				_head->prev = element;
+				_size++;
 			}
 
 			/**
@@ -382,7 +407,15 @@ namespace ft
 			*/
 			void pop_back()
 			{
-				
+				if (!empty())
+				{
+					Node *element = _head->prev;
+					_head->prev = element->prev;
+					_head->prev->next = _head;
+					Node_allocator(_alloc).destroy(&element->val);
+					Node_allocator(_alloc).deallocate(element, 1);
+					_size--;
+				}
 			}
 
 			/**
