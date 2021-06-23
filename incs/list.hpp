@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/16 23:33:56 by nforay            #+#    #+#             */
-/*   Updated: 2021/06/23 18:12:03 by nforay           ###   ########.fr       */
+/*   Updated: 2021/06/23 20:41:18 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -518,9 +518,7 @@ namespace ft
 			void insert(iterator position, size_type n, const value_type& val)
 			{
 				while (n--)
-				{
 					position = this->insert(position, val);
-				}
 			}
 
 			/**
@@ -599,15 +597,9 @@ namespace ft
 			*/
 			void swap(list& x)
 			{
-				Node*			tmp_head = _head;
-				size_type		tmp_size = _size;
-				allocator_type	tmp_alloc = _alloc;
-				_head = x._head;
-				_size = x._size;
-				_alloc = x._alloc;
-				x._head = tmp_head;
-				x._size = tmp_size;
-				x._alloc = tmp_alloc;
+				swap(_head, x._head);
+				swap(_size, x._size);
+				swap(_alloc, x._alloc);
 			}
 
 			/**
@@ -626,7 +618,10 @@ namespace ft
 			*/
 			void resize(size_type n, value_type val = value_type())
 			{
-				
+				while (this->size() > n)
+					this->pop_back();
+				while (this->size() < n)
+					this->push_back(val);
 			}
 
 			/**
@@ -635,7 +630,8 @@ namespace ft
 			*/
 			void clear()
 			{
-				
+				while (!this->empty())
+					this->pop_back();
 			}
 
 /*
@@ -657,19 +653,20 @@ namespace ft
 			*/
 			void splice(iterator position, list& x)
 			{
-				
+				this->insert(position, x.begin(), x.end());
+				x.clear();
 			}
 
 			/**
-			 * @brief Transfers elements from x into the container, inserting
-			 * them at position. This effectively inserts those elements into
-			 * the container and removes them from x, altering the sizes of both
+			 * @brief Transfers an element from x into the container, inserting
+			 * it at position. This effectively insert this element into the
+			 * container and removes it from x, altering the sizes of both
 			 * containers. The operation does not involve the construction or
-			 * destruction of any element. They are transferred, no matter
+			 * destruction of the element. It is transferred, no matter
 			 * whether x is an lvalue or an rvalue, or whether the value_type
 			 * supports move-construction or not.
-			 * @param position Position within the container where the elements
-			 * of x are inserted.
+			 * @param position Position within the container where the element
+			 * of x is inserted.
 			 * @param x A list object of the same type (i.e., with the same
 			 * template parameters, T and Alloc).
 			 * @param i Iterator to an element in x. Only this single element is
@@ -677,7 +674,8 @@ namespace ft
 			*/
 			void splice(iterator position, list& x, iterator i)
 			{
-				
+				this->insert(position, *i);
+				x.erase(i);
 			}
 
 			/**
@@ -698,7 +696,8 @@ namespace ft
 			void splice(iterator position, list& x, iterator first,
 				iterator last)
 			{
-				
+				this->insert(position, first, last);
+				x.erase(first, last);
 			}
 
 			/**
@@ -709,7 +708,13 @@ namespace ft
 			*/
 			void remove(const value_type& val)
 			{
-				
+				for (iterator it = this->begin(); it != this->end(); )
+				{
+					if (*it == val)
+						this->erase(it++);
+					else
+						it++;
+				}
 			}
 
 			/**
@@ -725,7 +730,13 @@ namespace ft
 			template <class Predicate>
 			void remove_if(Predicate pred)
 			{
-				
+				for (iterator it = this->begin(); it != this->end(); )
+				{
+					if (pred(*it))
+						this->erase(it++);
+					else
+						it++;
+				}
 			}
 
 			/**
@@ -737,7 +748,13 @@ namespace ft
 			*/
 			void unique()
 			{
-				
+				for (iterator it = begin(); it != end(); )
+				{
+					if (it != --this->end() && *it == it.getNode()->next->val)
+						this->erase(it++);
+					else
+						it++;
+				}
 			}
 
 			/**
@@ -757,7 +774,14 @@ namespace ft
 			template <class BinaryPredicate>
 			void unique(BinaryPredicate binary_pred)
 			{
-				
+				for (iterator it = begin(); it != end(); )
+				{
+					if (it != --this->end() && binary_pred(*it,
+							it.getNode()->next->val))
+						this->erase(it++);
+					else
+						it++;
+				}
 			}
 
 			/**
@@ -776,7 +800,7 @@ namespace ft
 			*/
 			void merge(list& x)
 			{
-				
+				this->merge(x, is_less());
 			}
 
 			/**
@@ -801,7 +825,11 @@ namespace ft
 			template <class Compare>
 			void merge(list& x, Compare comp)
 			{
-				
+				if (&x == this || x.empty())
+					return ;
+				this->insert(this->begin(), x.begin(), x.end());
+				this->sort(comp);
+				x.clear();
 			}
 
 			/**
@@ -811,7 +839,7 @@ namespace ft
 			*/
 			void sort()
 			{
-				
+				this->sort(is_less());
 			}
 
 			/**
@@ -827,7 +855,14 @@ namespace ft
 			template <class Compare>
 			void sort(Compare comp)
 			{
-				
+				if (this->size() <= 1)
+					return ;
+				for (iterator it = this->begin(); it != this->end(); it++)
+				{
+					for (iterator itr = it; itr != this->end(); itr++)
+						if (comp(*itr, *it))
+							swap(it.getNode()->val, itr.getNode()->val);
+				}
 			}
 
 			/**
@@ -835,7 +870,9 @@ namespace ft
 			*/
 			void reverse()
 			{
-				
+				for (iterator it = this->begin(); it != this->end(); it--)
+					swap(it.getNode()->next, it.getNode()->prev);
+				swap(_head->prev, _head->next);
 			}
 
 /*
@@ -866,6 +903,28 @@ namespace ft
 						return true;
 				return (lhs.size() < rhs.size());
 			}
+
+/*
+** ---------------------------- PRIVATE FUNCTIONS ------------------------------
+*/
+
+			template<class U>
+			void swap(U& u1, U& u2)
+			{
+				U tmp = u2;
+				u2 = u1;
+				u1 = tmp;
+			}
+
+			class is_less
+			{
+				public:
+					bool operator()(const value_type& a, const value_type& b)
+					{
+						return (a < b);
+					}
+			};
+
 	};
 
 	template <class T, class Alloc>
@@ -908,7 +967,7 @@ namespace ft
 	template <class T, class Alloc>
 	void swap(list<T,Alloc>& x, list<T,Alloc>& y)
 	{
-		
+		x.swap(y);
 	}
 }
 
