@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/16 23:33:56 by nforay            #+#    #+#             */
-/*   Updated: 2021/06/24 02:58:35 by nforay           ###   ########.fr       */
+/*   Updated: 2021/06/24 03:40:13 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include <memory>
 # include <limits>
+# include "utils.hpp"
 # include "list_iterators.hpp"
 
 namespace ft
@@ -111,7 +112,8 @@ namespace ft
 			 * The container keeps and uses an internal copy of this allocator.
 			*/
 			template <class InputIterator>
-			list(InputIterator first, InputIterator last,
+			list(typename ft::enable_if<!std::numeric_limits<InputIterator>
+				::is_integer, InputIterator>::type first, InputIterator last,
 				const allocator_type& alloc = allocator_type())
 			: _size(0), _alloc(alloc), _head(NULL)
 			{
@@ -370,21 +372,12 @@ namespace ft
 			 * positions in a sequence.
 			*/
 			template <class InputIterator>
-			void assign(InputIterator first, InputIterator last)
+			void assign(typename ft::enable_if<
+				!std::numeric_limits<InputIterator>::is_integer, InputIterator>
+				::type first, InputIterator last)
 			{
-				size_type	i = 0;
-				for (iterator it = first; it != last; ++it, ++i, ++first)
-				{
-					if (i >= this->size())
-						this->push_back(*first);
-					else
-					{
-						_alloc.destroy(&(*it));
-						_alloc.construct(&(*it), *first);
-					}
-				}
-				while (this->size() > i)
-					this->pop_back();
+				clear();
+				this->insert(this->begin(), first, last);
 			}
 
 			/**
@@ -533,8 +526,9 @@ namespace ft
 			 * positions in a range.
 			*/
 			template <class InputIterator>
-			void insert(iterator position, InputIterator first,
-				InputIterator last)
+			void insert(iterator position, typename ft::enable_if<
+				!std::numeric_limits<InputIterator>::is_integer, InputIterator>
+				::type first, InputIterator last)
 			{
 				for (; first != last; first++)
 				{
