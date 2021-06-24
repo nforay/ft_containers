@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/16 23:33:56 by nforay            #+#    #+#             */
-/*   Updated: 2021/06/23 20:41:18 by nforay           ###   ########.fr       */
+/*   Updated: 2021/06/24 02:58:35 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,9 +57,9 @@ namespace ft
 
 		private:
 
-			Node*			_head;
 			size_type		_size;
 			allocator_type	_alloc;
+			Node*			_head;
 
 		public:
 
@@ -379,8 +379,8 @@ namespace ft
 						this->push_back(*first);
 					else
 					{
-						Node_allocator(_alloc).destroy(&(*it));
-						Node_allocator(_alloc).construct(&(*it), *first);
+						_alloc.destroy(&(*it));
+						_alloc.construct(&(*it), *first);
 					}
 				}
 				while (this->size() > i)
@@ -405,7 +405,7 @@ namespace ft
 						this->push_back(val);
 					else
 					{
-						Node_allocator(_alloc).destroy(&(*it));
+						_alloc.destroy(&(*it));
 						Node_allocator(_alloc).construct(&(*it), val);
 					}
 				}
@@ -422,7 +422,7 @@ namespace ft
 			void push_front(const value_type& val)
 			{
 				Node *element = Node_allocator(_alloc).allocate(1);
-				Node_allocator(_alloc).construct(&element->val, val);
+				_alloc.construct(&element->val, val);
 				element->next = _head->next;
 				element->next->prev = element;
 				element->prev = _head;
@@ -442,7 +442,7 @@ namespace ft
 					Node *element = _head->next;
 					_head->next = element->next;
 					_head->next->prev = _head;
-					Node_allocator(_alloc).destroy(&element->val);
+					_alloc.destroy(&element->val);
 					Node_allocator(_alloc).deallocate(element, 1);
 					_size--;
 				}
@@ -458,7 +458,7 @@ namespace ft
 			void push_back(const value_type& val)
 			{
 				Node *element = Node_allocator(_alloc).allocate(1);
-				Node_allocator(_alloc).construct(&element->val, val);
+				_alloc.construct(&element->val, val);
 				element->next = _head;
 				element->prev = _head->prev;
 				element->prev->next = element;
@@ -478,7 +478,7 @@ namespace ft
 					Node *element = _head->prev;
 					_head->prev = element->prev;
 					_head->prev->next = _head;
-					Node_allocator(_alloc).destroy(&element->val);
+					_alloc.destroy(&element->val);
 					Node_allocator(_alloc).deallocate(element, 1);
 					_size--;
 				}
@@ -496,7 +496,7 @@ namespace ft
 			iterator insert(iterator position, const value_type& val)
 			{
 				Node *element = Node_allocator(_alloc).allocate(1);
-				Node_allocator(_alloc).construct(&element->val, val);
+				_alloc.construct(&element->val, val);
 				element->next = position.getNode()->prev->next;
 				element->prev = position.getNode()->prev;
 				element->prev->next = element;
@@ -559,7 +559,7 @@ namespace ft
 				position++;
 				element->prev->next = element->next;
 				element->next->prev = element->prev;
-				Node_allocator(_alloc).destroy(&element->val);
+				_alloc.destroy(&element->val);
 				Node_allocator(_alloc).deallocate(element, 1);
 				_size--;
 				return (position);

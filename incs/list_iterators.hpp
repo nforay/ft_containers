@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/20 19:28:07 by nforay            #+#    #+#             */
-/*   Updated: 2021/06/23 16:59:11 by nforay           ###   ########.fr       */
+/*   Updated: 2021/06/24 03:04:04 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,7 @@ namespace ft
 
 		public:
 
-			List_iterator(NodePtr node = nullptr) : m_node(node) {}
+			List_iterator(NodePtr node = NULL) : m_node(node) {}
 			List_iterator(const List_iterator<T, Node>& from)
 			: m_node(from.m_node) {}
 			~List_iterator() {}
@@ -120,7 +120,7 @@ namespace ft
 
 		public:
 
-			List_reverse_iterator(NodePtr node = nullptr) : m_node(node) {}
+			List_reverse_iterator(NodePtr node = NULL) : m_node(node) {}
 			List_reverse_iterator(const List_reverse_iterator<T, Node>& from)
 			: m_node(from.m_node) {}
 			~List_reverse_iterator() {}
