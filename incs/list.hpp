@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/16 23:33:56 by nforay            #+#    #+#             */
-/*   Updated: 2021/06/24 03:40:13 by nforay           ###   ########.fr       */
+/*   Updated: 2021/06/25 20:11:06 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -306,7 +306,7 @@ namespace ft
 			*/
 			size_type max_size() const
 			{
-				return (std::numeric_limits<size_type>::max() / sizeof(value_type));
+				return (std::numeric_limits<size_type>::max() / (sizeof(Node) * 2));
 			}
 
 /*
@@ -647,8 +647,9 @@ namespace ft
 			*/
 			void splice(iterator position, list& x)
 			{
-				this->insert(position, x.begin(), x.end());
-				x.clear();
+				if (this == &x)
+					return ;
+				this->splice(position, x, x.begin(), x.end());
 			}
 
 			/**
@@ -668,8 +669,7 @@ namespace ft
 			*/
 			void splice(iterator position, list& x, iterator i)
 			{
-				this->insert(position, *i);
-				x.erase(i);
+				this->splice(position, x, i, ++i);
 			}
 
 			/**
@@ -690,8 +690,23 @@ namespace ft
 			void splice(iterator position, list& x, iterator first,
 				iterator last)
 			{
-				this->insert(position, first, last);
-				x.erase(first, last);
+				size_type	i = 0;
+				Node		*splice_begin = first.getNode();
+				Node		*splice_end = last.getNode()->prev;
+
+				for (; first != last; ++first)
+					i++;
+				if (i)
+				{
+					splice_begin->prev->next = last.getNode();
+					last.getNode()->prev = splice_begin->prev;
+					(position.getNode()->prev)->next = splice_begin;
+					splice_begin->prev = position.getNode()->prev;
+					(position.getNode())->prev = splice_end;
+					splice_end->next = position.getNode();
+					x._size -= i;
+					this->_size += i;
+				}
 			}
 
 			/**
@@ -742,13 +757,7 @@ namespace ft
 			*/
 			void unique()
 			{
-				for (iterator it = begin(); it != end(); )
-				{
-					if (it != --this->end() && *it == it.getNode()->next->val)
-						this->erase(it++);
-					else
-						it++;
-				}
+				this->unique(is_equal<value_type>);
 			}
 
 			/**
@@ -768,13 +777,12 @@ namespace ft
 			template <class BinaryPredicate>
 			void unique(BinaryPredicate binary_pred)
 			{
-				for (iterator it = begin(); it != end(); )
+				iterator prev = begin();
+				for (iterator it = ++begin(); it != end(); )
 				{
-					if (it != --this->end() && binary_pred(*it,
-							it.getNode()->next->val))
-						this->erase(it++);
-					else
-						it++;
+					if (binary_pred(*it, *prev))
+						this->erase(it--);
+					prev = it++;
 				}
 			}
 
@@ -821,9 +829,16 @@ namespace ft
 			{
 				if (&x == this || x.empty())
 					return ;
-				this->insert(this->begin(), x.begin(), x.end());
-				this->sort(comp);
-				x.clear();
+				for (iterator it = this->begin(), itx = x.begin();
+					it != this->end() && itx != x.end();)
+				{
+					if (comp(*itx, *it))
+						this->splice(it, x, itx++);
+					else
+						it++;
+				}
+				if (!x.empty())
+					this->splice(this->end(), x);
 			}
 
 			/**
@@ -855,7 +870,10 @@ namespace ft
 				{
 					for (iterator itr = it; itr != this->end(); itr++)
 						if (comp(*itr, *it))
-							swap(it.getNode()->val, itr.getNode()->val);
+						{
+							swap(it.getNode(), itr.getNode());
+							swap(it, itr);
+						}
 				}
 			}
 
@@ -864,9 +882,12 @@ namespace ft
 			*/
 			void reverse()
 			{
-				for (iterator it = this->begin(); it != this->end(); it--)
-					swap(it.getNode()->next, it.getNode()->prev);
-				swap(_head->prev, _head->next);
+				for (iterator it = this->begin(), ite = --(this->end());
+					it != ite; it++, ite--)
+				{
+					swap(it.getNode(), ite.getNode());
+					swap(it, ite);
+				}
 			}
 
 /*
@@ -884,23 +905,10 @@ namespace ft
 			}
 
 /*
-** -------------------------------- OVERLOADS ----------------------------------
-*/
-
-			friend bool operator<(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
-			{
-				const_iterator itl = lhs.begin();
-				const_iterator itr = rhs.begin();
-
-				for (; itl != lhs.end() && itr != rhs.end(); itl++, itr++)
-					if (*itl < *itr)
-						return true;
-				return (lhs.size() < rhs.size());
-			}
-
-/*
 ** ---------------------------- PRIVATE FUNCTIONS ------------------------------
 */
+
+		private:
 
 			template<class U>
 			void swap(U& u1, U& u2)
@@ -908,6 +916,35 @@ namespace ft
 				U tmp = u2;
 				u2 = u1;
 				u1 = tmp;
+			}
+
+			void swap(Node* A, Node* B)
+			{
+				Node	*ptrVec[] = {A->prev, B->prev, A->next, B->next};
+
+				if (A == B)
+					return;
+				if (A->next == B || B->next == A)
+				{
+					A->prev = ptrVec[2];
+					B->prev = ptrVec[0];
+					A->next = ptrVec[3];
+					B->next = ptrVec[1];
+				}
+				else
+				{
+					A->prev = ptrVec[1];
+					B->prev = ptrVec[0];
+					A->next = ptrVec[3];
+					B->next = ptrVec[2];
+				}
+				A->prev->next = A->next->prev = A;
+				B->prev->next = B->next->prev = B;
+			}
+
+			template <typename U>
+			static bool is_equal(const U& a, const U& b) {
+				return (a == b);
 			}
 
 			class is_less
@@ -918,13 +955,25 @@ namespace ft
 						return (a < b);
 					}
 			};
-
 	};
+
+/*
+** -------------------------------- OVERLOADS ----------------------------------
+*/
+
+	template <class T, class Alloc>
+	bool operator<(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
+	{
+		return (ft::lexicographical_compare(lhs.begin(), lhs.end(),
+			rhs.begin(), rhs.end()));
+	}
 
 	template <class T, class Alloc>
 	bool operator==(const list<T,Alloc>& lhs, const list<T,Alloc>& rhs)
 	{
-		return (!(lhs < rhs || rhs < lhs));
+		if (lhs.size() != rhs.size())
+			return (false);
+		return (ft::equal(lhs.begin(), lhs.end(), rhs.begin()));
 	}
 
 	template <class T, class Alloc>

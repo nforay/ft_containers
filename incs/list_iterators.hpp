@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/20 19:28:07 by nforay            #+#    #+#             */
-/*   Updated: 2021/06/24 03:04:04 by nforay           ###   ########.fr       */
+/*   Updated: 2021/06/26 02:38:14 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,8 @@
 
 namespace ft
 {
+	template<class T, typename Node> class List_const_iterator;
+
 	template<class T, typename Node>
 	class List_iterator
 	{
@@ -24,6 +26,7 @@ namespace ft
 
 			typedef T								value_type;
 			typedef ptrdiff_t						difference_type;
+			typedef std::bidirectional_iterator_tag	iterator_category;
 			typedef value_type*						pointer;
 			typedef value_type&						reference;
 			typedef Node*							NodePtr;
@@ -32,34 +35,38 @@ namespace ft
 
 			NodePtr	m_node;
 
+		private:
+
+			List_iterator(const List_const_iterator<T, Node>& ) {}
+
 		public:
 
 			List_iterator(NodePtr node = NULL) : m_node(node) {}
-			List_iterator(const List_iterator<T, Node>& from)
-			: m_node(from.m_node) {}
+			List_iterator(const List_iterator& from) : m_node(from.m_node) {}
 			~List_iterator() {}
 
 			NodePtr	getNode() const { return m_node; }
 			List_iterator& operator=(const List_iterator& it)
 			{
-				m_node = it.m_node;
-				return *this;
+				if (this != &it)
+					m_node = it.m_node;
+				return (*this);
 			}
 
-			bool operator==(const List_iterator<T, Node>& it) const
+			bool operator==(const List_iterator& it) const
 			{
-				return m_node == it.m_node;
+				return (m_node == it.m_node);
 			}
-			bool operator!=(const List_iterator<T, Node>& it) const
+			bool operator!=(const List_iterator& it) const
 			{
-				return m_node != it.m_node;
+				return (m_node != it.m_node);
 			}
-			reference operator*() const { return m_node->val; }
-			pointer operator->() const { return &(m_node->val); }
-			List_iterator operator++()
+			reference operator*() const { return (m_node->val); }
+			pointer operator->() const { return (&(m_node->val)); }
+			List_iterator& operator++()
 			{
 				m_node = m_node->next;
-				return *this;
+				return (*this);
 			}
 			List_iterator operator++(int)
 			{
@@ -67,10 +74,10 @@ namespace ft
 				++(*this);
 				return (tmp);
 			}
-			List_iterator operator--()
+			List_iterator& operator--()
 			{
 				m_node = m_node->prev;
-				return *this;
+				return (*this);
 			}
 			List_iterator operator--(int)
 			{
@@ -93,16 +100,23 @@ namespace ft
 			{
 				this->m_node = node;
 			}
-			List_const_iterator& operator=(const List_const_iterator<T, Node>& it)
+			List_const_iterator(const List_iterator<T, Node>& from)
 			{
-				this->m_node = it.m_node;
-				return *this;
+				this->m_node = from.getNode();
 			}
 
-			const_reference operator*() const { return this->m_node->val; }
-			const_pointer operator->() const { return &(this->m_node->val); }
+			List_const_iterator& operator=(const List_const_iterator& it)
+			{
+				if (this != &it) 
+					this->m_node = it.m_node;
+				return (*this);
+			}
+			const_reference operator*() const { return (this->m_node->val); }
+			const_pointer operator->() const { return (&(this->m_node->val)); }
 	};
 	
+	template<class T, typename Node> class List_const_reverse_iterator;
+
 	template<class T, typename Node>
 	class List_reverse_iterator
 	{
@@ -110,41 +124,56 @@ namespace ft
 
 			typedef T								value_type;
 			typedef ptrdiff_t						difference_type;
+			typedef std::bidirectional_iterator_tag	iterator_category;
 			typedef value_type*						pointer;
 			typedef value_type&						reference;
 			typedef Node*							NodePtr;
 
 		protected:
 
-			NodePtr	m_node;
+			List_iterator<T, Node>		m_base;
+
+		private:
+
+			List_reverse_iterator(const List_const_reverse_iterator<T, Node>& ) {}
 
 		public:
 
-			List_reverse_iterator(NodePtr node = NULL) : m_node(node) {}
-			List_reverse_iterator(const List_reverse_iterator<T, Node>& from)
-			: m_node(from.m_node) {}
-			~List_reverse_iterator() {}
+			List_reverse_iterator(NodePtr node = NULL)
+			: m_base(List_iterator<T, Node>(node)) {}
+			explicit List_reverse_iterator(List_iterator<T, Node> from)
+			: m_base(from.getNode()) {}
+			List_reverse_iterator(const List_reverse_iterator<T, Node>& rev_it)
+			: m_base(rev_it.m_base) {}
 
-			List_reverse_iterator& operator=(const List_reverse_iterator<T, Node>& it)
+			NodePtr	getNode() const { return (this->m_base.getNode()); }
+			List_iterator<T, Node> base() const { return (this->m_base); }
+			List_reverse_iterator& operator=(const List_reverse_iterator& it)
 			{
-				m_node = it.m_node;
-				return *this;
+				if (this != &it)
+					m_base = it.base();
+				return (*this);
 			}
-
-			bool operator==(const List_reverse_iterator<T, Node>& it) const
+			bool operator==(const List_reverse_iterator& it) const
 			{
-				return m_node == it.m_node;
+				return (m_base == it.m_base);
 			}
-			bool operator!=(const List_reverse_iterator<T, Node>& it) const
+			bool operator!=(const List_reverse_iterator& it) const
 			{
-				return m_node != it.m_node;
+				return (m_base != it.m_base);
 			}
-			reference operator*() const { return m_node->val; }
-			pointer operator->() const { return &(m_node->val); }
-			List_reverse_iterator operator++()
+			reference operator*() const
 			{
-				m_node = m_node->prev;
-				return *this;
+				return (*(--List_iterator<T, Node>(this->m_base)));
+			}
+			pointer operator->() const
+			{
+				return (&this->operator*());
+			}
+			List_reverse_iterator& operator++()
+			{
+				this->m_base.operator--();
+				return (*this);
 			}
 			List_reverse_iterator operator++(int)
 			{
@@ -152,10 +181,10 @@ namespace ft
 				++(*this);
 				return (tmp);
 			}
-			List_reverse_iterator operator--()
+			List_reverse_iterator& operator--()
 			{
-				m_node = m_node->next;
-				return *this;
+				this->m_base.operator++();
+				return (*this);
 			}
 			List_reverse_iterator operator--(int)
 			{
@@ -176,16 +205,32 @@ namespace ft
 
 			List_const_reverse_iterator(NodePtr node)
 			{
-				this->m_node = node;
+				this->m_base = node;
 			}
-			List_const_reverse_iterator& operator=(const List_const_reverse_iterator<T, Node>& it)
+			explicit List_const_reverse_iterator(List_iterator<T, Node> from)
 			{
-				this->m_node = it.m_node;
-				return *this;
+				this->m_base = from.getNode()->prev;
+			}
+			List_const_reverse_iterator(List_const_iterator<T, Node> from)
+			{
+				this->m_base = from.getNode()->prev;
+			}
+			List_const_reverse_iterator(const List_reverse_iterator<T, Node>& from)
+			{
+				this->m_base = from.getNode();
 			}
 
-			const_reference operator*() const { return this->m_node->val; }
-			const_pointer operator->() const { return &(this->m_node->val); }
+			List_const_reverse_iterator& operator=(const List_const_reverse_iterator& it)
+			{
+				if (this != &it) 
+					this->m_base = it.m_base;
+				return (*this);
+			}
+			const_reference operator*() const
+			{
+				return (*(--List_iterator<T, Node>(this->m_base)));
+			}
+			const_pointer operator->() const { return (&this->operator*()); }
 	};
 }
 
