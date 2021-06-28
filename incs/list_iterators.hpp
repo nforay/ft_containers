@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/20 19:28:07 by nforay            #+#    #+#             */
-/*   Updated: 2021/06/26 02:38:14 by nforay           ###   ########.fr       */
+/*   Updated: 2021/06/28 15:55:03 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -142,16 +142,19 @@ namespace ft
 			List_reverse_iterator(NodePtr node = NULL)
 			: m_base(List_iterator<T, Node>(node)) {}
 			explicit List_reverse_iterator(List_iterator<T, Node> from)
-			: m_base(from.getNode()) {}
+			: m_base(from.getNode()->prev) {}
 			List_reverse_iterator(const List_reverse_iterator<T, Node>& rev_it)
 			: m_base(rev_it.m_base) {}
 
 			NodePtr	getNode() const { return (this->m_base.getNode()); }
-			List_iterator<T, Node> base() const { return (this->m_base); }
+			List_iterator<T, Node> base() const
+			{
+				return (this->m_base.getNode()->next);
+			}
 			List_reverse_iterator& operator=(const List_reverse_iterator& it)
 			{
 				if (this != &it)
-					m_base = it.base();
+					m_base = it.m_base;
 				return (*this);
 			}
 			bool operator==(const List_reverse_iterator& it) const
@@ -164,7 +167,7 @@ namespace ft
 			}
 			reference operator*() const
 			{
-				return (*(--List_iterator<T, Node>(this->m_base)));
+				return (*(List_iterator<T, Node>(this->m_base)));
 			}
 			pointer operator->() const
 			{
@@ -203,10 +206,6 @@ namespace ft
 			typedef T const *	const_pointer;
 			typedef Node*		NodePtr;
 
-			List_const_reverse_iterator(NodePtr node)
-			{
-				this->m_base = node;
-			}
 			explicit List_const_reverse_iterator(List_iterator<T, Node> from)
 			{
 				this->m_base = from.getNode()->prev;
@@ -226,9 +225,17 @@ namespace ft
 					this->m_base = it.m_base;
 				return (*this);
 			}
+			bool operator==(const List_const_reverse_iterator& it) const
+			{
+				return (this->m_base == it.m_base);
+			}
+			bool operator!=(const List_const_reverse_iterator& it) const
+			{
+				return (this->m_base != it.m_base);
+			}
 			const_reference operator*() const
 			{
-				return (*(--List_iterator<T, Node>(this->m_base)));
+				return (*(List_iterator<T, Node>(this->m_base)));
 			}
 			const_pointer operator->() const { return (&this->operator*()); }
 	};
