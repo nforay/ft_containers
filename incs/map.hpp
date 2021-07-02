@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/01 16:21:43 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/01 17:47:41 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/02 15:10:30 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,7 +29,6 @@ namespace ft
 		struct Node
 		{
 			ft::pair<const Key, T>	val;
-			size_t					height;
 			Node*					parent;
 			Node*					left;
 			Node*					right;
@@ -61,6 +60,85 @@ namespace ft
 			key_compare		_comp;
 			allocator_type	_alloc;
 			size_type		_size;
+
+		public:
+
+			
+
+		private:
+
+			/**
+			 * @brief Calculate the height of the given AVL Tree
+			 * @param node Pointer to the starting node for the depth calculation
+			 * @return An int representing the height of the given node
+			*/
+			int		tree_height(Node* node) const
+			{
+				
+			}
+
+			/**
+			 * @brief Calculate the balance factor of the given node
+			 * @param node Pointer to the node to be balanced
+			 * @return An int representing te balance factor. The value –1
+			 * indicates that the left sub-tree contains one extra, the value +1
+			 * indicates that the left sub-tree contains one extra and value 0
+			 * shows that the tree includes equal nodes on each side.
+			*/
+			int		tree_balance(Node* node) const
+			{
+				
+			}
+
+			/**
+			 * @brief Performs a Right-Right rotation of the given node. This
+			 * rotation is performed when a new node is inserted at the right
+			 * child of the right subtree.
+			*/
+			Node*	tree_rr_rotate(Node* node)
+			{
+				
+			}
+
+			/**
+			 * 
+			*/
+			Node*	tree_ll_rotate(Node* node)
+			{
+				
+			}
+
+			/**
+			 * 
+			*/
+			Node*	tree_lr_rotate(Node* node)
+			{
+				
+			}
+
+			/**
+			 * 
+			*/
+			Node*	tree_lr_rotate(Node* node)
+			{
+				
+			}
+
+			/**
+			 * 
+			*/
+			Node*	tree_insert(Node* node)
+			{
+				
+			}
+
+			/**
+			 * 
+			*/
+			Node*	tree_delete(Node* node)
+			{
+				
+			}
 	};
 }
 
