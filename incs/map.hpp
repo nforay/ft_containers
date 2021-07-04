@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/01 16:21:43 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/03 17:17:13 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/04 03:02:24 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,8 @@
 # include <memory>
 # include <limits>
 # include "utils.hpp"
+
+# include <iostream>
 
 namespace ft
 {
@@ -57,38 +59,46 @@ namespace ft
 		private:
 
 			Node*			_root;
+			size_type		_size;
 			key_compare		_comp;
 			allocator_type	_alloc;
-			size_type		_size;
 
 		public:
 
 			/**
-			 * 
+			 * @brief Constructs an empty container, with no elements.
 			*/
 			explicit map(const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type())
+			: _root(NULL), _size(0), _comp(comp), _alloc(alloc)
 			{
 				
 			}
 
 			/**
-			 * 
+			 * @brief Constructs a container with as many elements as the range
+			 * [first,last), with each element constructed from its
+			 * corresponding element in that range.
 			*/
 			template <class InputIterator>
 			map(InputIterator first, InputIterator last,
 				const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type())
+			: _root(NULL), _size(0), _comp(comp), _alloc(alloc)
 			{
-				
+				while (first != last)
+					this->insert(*first++);
 			}
 
 			/**
-			 * 
+			 * @brief Constructs a container with a copy of each of the elements
+			 * in x.
 			*/
 			map(const map& x)
+			: _root(NULL), _size(0), _comp(x.comp), _alloc(x.alloc)
 			{
-				
+				for (const_iterator it = x.begin(); it != x.end(); it++)
+					this->insert(*it);
 			}
 
 			/**
@@ -96,7 +106,7 @@ namespace ft
 			*/
 			~map()
 			{
-				
+				this->clear();
 			}
 
 			/**
@@ -104,7 +114,9 @@ namespace ft
 			*/
 			map& operator=(const map& x)
 			{
-				
+				map tmp(x);
+				this->swap(tmp);
+				return (*this);
 			}
 
 /*
@@ -116,7 +128,7 @@ namespace ft
 			*/
 			iterator begin()
 			{
-
+				return (iterator(this->tree_smallest(_root)));
 			}
 
 			/**
@@ -124,7 +136,7 @@ namespace ft
 			*/
 			const_iterator begin() const
 			{
-
+				return (const_iterator(this->tree_smallest(_root)));
 			}
 
 			/**
@@ -132,7 +144,7 @@ namespace ft
 			*/
 			iterator end()
 			{
-				
+				return (iterator(this->tree_biggest(_root)->right));
 			}
 
 			/**
@@ -140,7 +152,7 @@ namespace ft
 			*/
 			const_iterator end() const
 			{
-				
+				return (const_iterator(this->tree_biggest(_root)->right));
 			}
 
 			/**
@@ -148,7 +160,7 @@ namespace ft
 			*/
 			reverse_iterator rbegin()
 			{
-				
+				return (reverse_iterator(this->tree_biggest(_root)));
 			}
 
 			/**
@@ -156,7 +168,7 @@ namespace ft
 			*/
 			const_reverse_iterator rbegin() const
 			{
-
+				return (const_reverse_iterator(this->tree_biggest(_root)));
 			}
 
 			/**
@@ -164,7 +176,7 @@ namespace ft
 			*/
 			reverse_iterator rend()
 			{
-				
+				return (reverse_iterator(this->tree_smallest(_root)->left));
 			}
 
 			/**
@@ -172,7 +184,7 @@ namespace ft
 			*/
 			const_reverse_iterator rend() const
 			{
-
+				return (const_reverse_iterator(this->tree_smallest(_root)->left));
 			}
 
 /*
@@ -184,7 +196,7 @@ namespace ft
 			*/
 			bool empty() const
 			{
-
+				return (_size == 0);
 			}
 
 			/**
@@ -192,7 +204,7 @@ namespace ft
 			*/
 			size_type size() const
 			{
-				
+				return (_size);
 			}
 
 			/**
@@ -200,7 +212,7 @@ namespace ft
 			*/
 			size_type max_size() const
 			{
-				
+				return (Node_allocator(_alloc).max_size());
 			}
 
 /*
@@ -212,7 +224,18 @@ namespace ft
 			*/
 			mapped_type& operator[](const key_type& k)
 			{
-				
+				Node* found = this->tree_search(_root, k);
+
+				if (found)
+					return (found->val.second);
+				found = Node_allocator(_alloc).allocate(1);
+				_alloc.construct(&found->val,
+					make_pair<key_type, mapped_type>(k, mapped_type()));
+				//
+				_root = this->tree_insert(_root, NULL, &found);
+				std::cout << "Inserted: " << found->val.first << " val " << found->val.second << std::endl;
+				return (found->val.second);
+				//return (this->tree_insert(_root, NULL, found)->val.second);
 			}
 
 /*
@@ -224,7 +247,15 @@ namespace ft
 			*/
 			pair<iterator,bool> insert(const value_type& val)
 			{
+				Node* found = this->tree_search(_root, val.first);
 
+				if (found)
+					return (ft::pair<iterator, bool>(iterator(found), false));
+				found = Node_allocator(_alloc).allocate(1);
+				_alloc.construct(&found->val, val);
+				_root = this->tree_insert(_root, NULL, &found);
+				std::cout << "Inserted: " << found->val.first << " val " << found->val.second << std::endl;
+				return (ft::pair<iterator, bool>(iterator(found), true));
 			}
 
 			/**
@@ -293,15 +324,33 @@ namespace ft
 			*/
 			key_compare key_comp() const
 			{
-				
+				return (_comp);
 			}
+
+			struct value_compare
+			{
+				typedef bool		result_type;
+				typedef value_type	first_argument_type;
+				typedef value_type	second_argument_type;
+
+				bool operator()(const value_type &x, const value_type &y) const
+				{
+					return Compare(x.first, y.first);
+				}
+
+				protected:
+
+					key_compare		comp;
+
+					value_compare(Compare c) : comp(c) {}
+			};
 
 			/**
 			 * 
 			*/
 			value_compare value_comp() const
 			{
-				
+				return (value_compare(_comp));
 			}
 
 /*
@@ -395,6 +444,16 @@ namespace ft
 /*
 ** ---------------------------- PRIVATE FUNCTIONS ------------------------------
 */
+
+			void print(void) { inorder(_root); }
+			void inorder(Node *node) //TEMP
+			{
+				if (node == NULL)
+					return;
+				inorder(node->left);
+				std::cout << node->val.first << "=" << node->val.second << " ";
+				inorder(node->right);
+			}
 
 		private:
 
@@ -504,30 +563,34 @@ namespace ft
 					else
 						return (this->tree_rl_rotate(node));
 				}
+				return (node);
 			}
 
 			/**
 			 * 
 			*/
-			Node*	tree_insert(Node* node, Node* parent, Node* new_node)
+			Node*	tree_insert(Node* node, Node* parent, Node** new_node)
 			{
 				if (node == NULL)
 				{
-					new_node->parent = parent;
-					return (node = new_node);
+					(*new_node)->parent = parent;
+					if (!_root)
+						_root = *new_node;
+					return (node = *new_node);
 				}
-				else if (new_node->val.first == node->val.first)
+				else if ((*new_node)->val.first == node->val.first)
 					return (NULL);
-				else if (new_node->val.first < node->val.first)
+				else if ((*new_node)->val.first < node->val.first)
 				{
 					node->left = tree_insert(node->left, node, new_node);
 					return (this->tree_balance(node));
 				}
-				else if (new_node->val.first > node->val.first)
+				else if ((*new_node)->val.first > node->val.first)
 				{
 					node->right = tree_insert(node->right, node, new_node);
 					return (this->tree_balance(node));
 				}
+				return (node);
 			}
 
 			/**
@@ -552,7 +615,7 @@ namespace ft
 					}
 					else
 					{
-						tmp->parent = found->parent;
+						tmp->parent = node->parent;
 						*node = *tmp;
 					}
 					_alloc.destroy(&tmp->val);
