@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/01 16:21:43 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/04 03:02:24 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/04 19:14:37 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,14 @@ namespace ft
 		public:
 
 			/**
-			 * @brief Constructs an empty container, with no elements.
+			 * @brief empty container constructor (default constructor):
+			 * Constructs an empty container, with no elements.
+			 * @tparam comp Binary predicate that, taking two element keys as
+			 * argument, returns true if the first argument goes before the
+			 * second argument in the strict weak ordering it defines, and false
+			 * otherwise. This shall be a function pointer or a function object.
+			 * @tparam alloc Allocator object. The container keeps and uses an
+			 * internal copy of this allocator.
 			*/
 			explicit map(const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type())
@@ -76,9 +83,19 @@ namespace ft
 			}
 
 			/**
-			 * @brief Constructs a container with as many elements as the range
-			 * [first,last), with each element constructed from its
-			 * corresponding element in that range.
+			 * @brief range constructor: Constructs a container with as many
+			 * elements as the range [first,last), with each element constructed
+			 * from its corresponding element in that range.
+			 * @tparam first,last Input iterators to the initial and final
+			 * positions in a range. The range used is [first,last), which
+			 * includes all the elements between first and last, including the
+			 * element pointed by first but not the element pointed by last.
+			 * @tparam comp Binary predicate that, taking two element keys as
+			 * argument, returns true if the first argument goes before the
+			 * second argument in the strict weak ordering it defines, and false
+			 * otherwise. This shall be a function pointer or a function object.
+			 * @tparam alloc Allocator object. The container keeps and uses an
+			 * internal copy of this allocator.
 			*/
 			template <class InputIterator>
 			map(InputIterator first, InputIterator last,
@@ -91,8 +108,11 @@ namespace ft
 			}
 
 			/**
-			 * @brief Constructs a container with a copy of each of the elements
-			 * in x.
+			 * @brief Copy constructor: Constructs a container with a copy of
+			 * each of the elements in x.
+			 * @tparam x Another map object of the same type (with the same
+			 * class template arguments Key, T, Compare and Alloc), whose
+			 * contents are either copied or acquired.
 			*/
 			map(const map& x)
 			: _root(NULL), _size(0), _comp(x.comp), _alloc(x.alloc)
@@ -102,7 +122,10 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Map destructor: Destroys the container object.
+			 * This destroys all container elements, and deallocates all the
+			 * storage capacity allocated by the map container using its
+			 * allocator.
 			*/
 			~map()
 			{
@@ -110,7 +133,9 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Copies all the elements from x into the container,
+			 * changing its size accordingly.
+			 * @return *this
 			*/
 			map& operator=(const map& x)
 			{
@@ -124,7 +149,9 @@ namespace ft
 */
 
 			/**
-			 * 
+			 * @brief Returns an iterator referring to the first element in the
+			 * map container.
+			 * @return An iterator to the first element in the container.
 			*/
 			iterator begin()
 			{
@@ -132,7 +159,9 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns a const iterator referring to the first element in
+			 * the map container.
+			 * @return A const iterator to the first element in the container.
 			*/
 			const_iterator begin() const
 			{
@@ -140,7 +169,9 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns an iterator referring to the past-the-end element
+			 * in the map container.
+			 * @return An iterator to the past-the-end element in the container.
 			*/
 			iterator end()
 			{
@@ -148,7 +179,10 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns a const iterator referring to the past-the-end
+			 * element in the map container.
+			 * @return A const iterator to the past-the-end element in the
+			 * container.
 			*/
 			const_iterator end() const
 			{
@@ -156,7 +190,10 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns a reverse iterator pointing to the last element in
+			 * the container (i.e., its reverse beginning).
+			 * @return A reverse iterator to the reverse beginning of the
+			 * sequence container.
 			*/
 			reverse_iterator rbegin()
 			{
@@ -164,7 +201,10 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns a const reverse iterator pointing to the last
+			 * element in the container (i.e., its reverse beginning).
+			 * @return A const reverse iterator to the reverse beginning of the
+			 * sequence container.
 			*/
 			const_reverse_iterator rbegin() const
 			{
@@ -172,7 +212,11 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns a reverse iterator pointing to the theoretical
+			 * element right before the first element in the map container
+			 * (which is considered its reverse end).
+			 * @return A reverse iterator to the reverse end of the sequence
+			 * container.
 			*/
 			reverse_iterator rend()
 			{
@@ -180,7 +224,11 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns a const reverse iterator pointing to the
+			 * theoretical element right before the first element in the map
+			 * container (which is considered its reverse end).
+			 * @return A const reverse iterator to the reverse end of the
+			 * sequence container.
 			*/
 			const_reverse_iterator rend() const
 			{
@@ -192,7 +240,9 @@ namespace ft
 */
 
 			/**
-			 * 
+			 * @brief Returns whether the map container is empty (i.e. whether
+			 * its size is 0).
+			 * @return true if the container size is 0, false otherwise.
 			*/
 			bool empty() const
 			{
@@ -200,7 +250,8 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns the number of elements in the map container.
+			 * @return The number of elements in the container.
 			*/
 			size_type size() const
 			{
@@ -208,7 +259,10 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns the maximum number of elements that the map
+			 * container can hold.
+			 * @return The maximum number of elements a map container can hold
+			 * as content.
 			*/
 			size_type max_size() const
 			{
@@ -220,7 +274,11 @@ namespace ft
 */
 
 			/**
-			 * 
+			 * @brief If k matches the key of an element in the container, the
+			 * function returns a reference to its mapped value. If k does not
+			 * match the key of any element in the container, the function
+			 * inserts a new element with that key and returns a reference to
+			 * its mapped value.
 			*/
 			mapped_type& operator[](const key_type& k)
 			{
@@ -229,13 +287,12 @@ namespace ft
 				if (found)
 					return (found->val.second);
 				found = Node_allocator(_alloc).allocate(1);
+				found->right = NULL;
+				found->left = NULL;
 				_alloc.construct(&found->val,
-					make_pair<key_type, mapped_type>(k, mapped_type()));
-				//
+					make_pair(k, mapped_type()));
 				_root = this->tree_insert(_root, NULL, &found);
-				std::cout << "Inserted: " << found->val.first << " val " << found->val.second << std::endl;
 				return (found->val.second);
-				//return (this->tree_insert(_root, NULL, found)->val.second);
 			}
 
 /*
@@ -243,7 +300,10 @@ namespace ft
 */
 
 			/**
-			 * 
+			 * @brief Extends the container by inserting new elements,
+			 * effectively increasing the container size by one.
+			 * @param val Value to be copied to (or moved as) the inserted
+			 * element.
 			*/
 			pair<iterator,bool> insert(const value_type& val)
 			{
@@ -252,14 +312,22 @@ namespace ft
 				if (found)
 					return (ft::pair<iterator, bool>(iterator(found), false));
 				found = Node_allocator(_alloc).allocate(1);
+				found->right = NULL;
+				found->left = NULL;
 				_alloc.construct(&found->val, val);
 				_root = this->tree_insert(_root, NULL, &found);
-				std::cout << "Inserted: " << found->val.first << " val " << found->val.second << std::endl;
 				return (ft::pair<iterator, bool>(iterator(found), true));
 			}
 
 			/**
-			 * 
+			 * @brief Extends the container by inserting new elements,
+			 * effectively increasing the container size by one.
+			 * @param position Hint for the position where the element can be
+			 * inserted. Notice that this is just a hint and does not force the
+			 * new element to be inserted at that position within the map
+			 * container.
+			 * @param val Value to be copied to (or moved as) the inserted
+			 * element.
 			*/
 			iterator insert(iterator position, const value_type& val)
 			{
@@ -267,7 +335,12 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Extends the container by inserting new elements,
+			 * effectively increasing the container size by the number of
+			 * elements inserted.
+			 * @param first,last Iterators specifying a range of elements.
+			 * Copies of the elements in the range [first,last) are inserted in
+			 * the container.
 			*/
 			template <class InputIterator>
 			void insert(InputIterator first, InputIterator last)
@@ -276,7 +349,11 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Removes a single element from the map container.
+			 * This effectively reduces the container size by one and destroy
+			 * the element.
+			 * @param position Iterator pointing to a single element to be
+			 * removed from the map.
 			*/
 			void erase(iterator position)
 			{
@@ -284,15 +361,26 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Removes a single element from the map container.
+			 * This effectively reduces the container size by one and destroy
+			 * the element.
+			 * @param k Key of the element to be removed from the map.
 			*/
 			size_type erase(const key_type& k)
 			{
-				
+				size_type tmp = this->size();
+				_root = this->tree_delete(_root, k);
+				return ((this->size() == tmp) ? 0 : 1);
 			}
 
 			/**
-			 * 
+			 * @brief Removes from the map container a range of elements
+			 * ([first,last)). This effectively reduces the container size by
+			 * the number of elements removed, which are destroyed.
+			 * @param first,last Iterators specifying a range within the map
+			 * container to be removed: [first,last). i.e., the range includes
+			 * all the elements between first and last, including the element
+			 * pointed by first but not the one pointed by last.
 			*/
 			void erase(iterator first, iterator last)
 			{
@@ -300,19 +388,27 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Exchanges the content of the container by the content of
+			 * x, which is another map of the same type. Sizes may differ.
+			 * @param x  Another map container of the same type as this (i.e.,
+			 * with the same template parameters, Key, T, Compare and Alloc)
+			 * whose content is swapped with that of this container.
 			*/
 			void swap(map& x)
 			{
-				
+				swap(_root, x._root);
+				swap(_size, x._size);
+				swap(_comp, x._comp);
+				swap(_alloc, x._alloc);
 			}
 
 			/**
-			 * 
+			 * @brief Removes all elements from the map container (which are
+			 * destroyed), leaving the container with a size of 0.
 			*/
 			void clear()
 			{
-				
+				this->erase(this->begin(), this->end());
 			}
 
 /*
@@ -320,18 +416,25 @@ namespace ft
 */
 
 			/**
-			 * 
+			 * @brief Returns a copy of the comparison object used by the
+			 * container to compare keys.
+			 * @return The comparison object.
 			*/
 			key_compare key_comp() const
 			{
 				return (_comp);
 			}
 
-			struct value_compare
+			class value_compare
 			{
-				typedef bool		result_type;
-				typedef value_type	first_argument_type;
-				typedef value_type	second_argument_type;
+				// in C++98, it is required to inherit binary_function<value_type,value_type,bool>
+				friend class map;
+
+				public:
+
+					typedef bool		result_type;
+					typedef value_type	first_argument_type;
+					typedef value_type	second_argument_type;
 
 				bool operator()(const value_type &x, const value_type &y) const
 				{
@@ -346,7 +449,10 @@ namespace ft
 			};
 
 			/**
-			 * 
+			 * @brief Returns a comparison object that can be used to compare
+			 * two elements to get whether the key of the first one goes before
+			 * the second.
+			 * @return The comparison object for element values.
 			*/
 			value_compare value_comp() const
 			{
@@ -358,31 +464,63 @@ namespace ft
 */
 
 			/**
-			 * 
+			 * @brief Searches the container for an element with a key
+			 * equivalent to k and returns an iterator to it if found,
+			 * otherwise it returns an iterator to map::end.
+			 * @param k Key to search for.
+			 * @return An iterator to the element, if an element with specified
+			 * key is found, or map::end otherwise.
 			*/
 			iterator find(const key_type& k)
 			{
-				
+				Node* found = this->tree_search(_root, k);
+
+				if (found)
+					return (iterator(found));
+				return (this->end());
 			}
 
 			/**
-			 * 
+			 * @brief Searches the container for an element with a key
+			 * equivalent to k and returns a const iterator to it if found,
+			 * otherwise it returns a const iterator to map::end.
+			 * @param k Key to search for.
+			 * @return A const iterator to the element, if an element with
+			 * specified key is found, or map::end otherwise.
 			*/
 			const_iterator find(const key_type& k) const
 			{
-				
+				Node* found = this->tree_search(_root, k);
+
+				if (found)
+					return (const_iterator(found));
+				return (this->end());
 			}
 
 			/**
-			 * 
+			 * @brief Searches the container for elements with a key equivalent
+			 * to k and returns the number of matches.
+			 * @param k Key to search for.
+			 * @return 1 if the container contains an element whose key is
+			 * equivalent to k, or zero otherwise.
 			*/
 			size_type count(const key_type& k) const
 			{
-				
+				Node* found = this->tree_search(_root, k);
+
+				if (found)
+					return (1);
+				return (0);
 			}
 
 			/**
-			 * 
+			 * @brief Returns an iterator pointing to the first element in the
+			 * container whose key is not considered to go before k (i.e.,
+			 * either it is equivalent or goes after).
+			 * @param k Key to search for.
+			 * @return An iterator to the the first element in the container
+			 * whose key is not considered to go before k, or map::end if all
+			 * keys are considered to go before k.
 			*/
 			iterator lower_bound(const key_type& k)
 			{
@@ -390,7 +528,13 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns a const iterator pointing to the first element in
+			 * the container whose key is not considered to go before k (i.e.,
+			 * either it is equivalent or goes after).
+			 * @param k Key to search for.
+			 * @return A const iterator to the the first element in the
+			 * container whose key is not considered to go before k, or map::end
+			 * if all keys are considered to go before k.
 			*/
 			const_iterator lower_bound(const key_type& k) const
 			{
@@ -398,7 +542,12 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns an iterator pointing to the first element in the
+			 * container whose key is considered to go after k.
+			 * @param k Key to search for.
+			 * @return An iterator to the the first element in the container
+			 * whose key is considered to go after k, or map::end if no keys are
+			 * considered to go after k.
 			*/
 			iterator upper_bound(const key_type& k)
 			{
@@ -406,7 +555,12 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * Returns a const iterator pointing to the first element in the
+			 * container whose key is considered to go after k.
+			 * @param k Key to search for.
+			 * @return A const iterator to the the first element in the
+			 * container whose key is considered to go after k, or map::end if
+			 * no keys are considered to go after k.
 			*/
 			const_iterator upper_bound(const key_type& k) const
 			{
@@ -414,7 +568,14 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns the bounds of a range that includes all the
+			 * elements in the container which have a key equivalent to k.
+			 * Because the elements in a map container have unique keys, the
+			 * range returned will contain a single element at most.
+			 * @param k Key to search for.
+			 * @return The function returns a pair, whose member pair::first is
+			 * the lower bound of the range (the same as lower_bound),
+			 * and pair::second is the upper bound (the same as upper_bound).
 			*/
 			pair<const_iterator,const_iterator> equal_range(const key_type& k) const
 			{
@@ -422,7 +583,14 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns the bounds of a range that includes all the
+			 * elements in the container which have a key equivalent to k.
+			 * Because the elements in a map container have unique keys, the
+			 * range returned will contain a single element at most.
+			 * @param k Key to search for.
+			 * @return The function returns a pair, whose member pair::first is
+			 * the lower bound of the range (the same as lower_bound),
+			 * and pair::second is the upper bound (the same as upper_bound).
 			*/
 			pair<iterator,iterator> equal_range(const key_type& k)
 			{
@@ -434,28 +602,43 @@ namespace ft
 */
 
 			/**
-			 * 
+			 * @brief Returns a copy of the allocator object associated with the
+			 * map.
+			 * @return The allocator.
 			*/
 			allocator_type get_allocator() const
 			{
-				
+				return (_alloc);
 			}
 
 /*
 ** ---------------------------- PRIVATE FUNCTIONS ------------------------------
 */
 
-			void print(void) { inorder(_root); }
-			void inorder(Node *node) //TEMP
+			void print(void)//TEMP
+			{
+				std::cout << "root: " << _root->val.first << "=" << _root->val.second << std::endl;
+				inorder(_root, NULL);
+				std::cout << std::endl;
+			}
+			void inorder(Node *node, Node *parent) //TEMP DEBUG PRINT
 			{
 				if (node == NULL)
 					return;
-				inorder(node->left);
+				inorder(node->left, node);
 				std::cout << node->val.first << "=" << node->val.second << " ";
-				inorder(node->right);
+				inorder(node->right, node);
 			}
 
 		private:
+
+			template<class U>
+			void swap(U& u1, U& u2)
+			{
+				U tmp = u2;
+				u2 = u1;
+				u1 = tmp;
+			}
 
 			/**
 			 * @brief Calculate the height of the given AVL Tree
@@ -499,6 +682,8 @@ namespace ft
 				new_parent->parent = node->parent;
 				node->parent = new_parent;
 				node->right = new_parent->left;
+				if (new_parent->left)
+					new_parent->left->parent = node;
 				new_parent->left = node;
 				return (new_parent);
 			}
@@ -514,6 +699,8 @@ namespace ft
 				new_parent->parent = node->parent;
 				node->parent = new_parent;
 				node->left = new_parent->right;
+				if (new_parent->right)
+					new_parent->right->parent = node;
 				new_parent->right = node;
 				return (new_parent);
 			}
@@ -620,6 +807,7 @@ namespace ft
 					}
 					_alloc.destroy(&tmp->val);
 					Node_allocator(_alloc).deallocate(tmp, 1);
+					_size--;
 				}
 				else
 				{
