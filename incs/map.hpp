@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/01 16:21:43 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/06 17:08:42 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/06 19:44:49 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 
 # include <memory>
 # include <limits>
+# include <functional>
 # include "utils.hpp"
 # include "map_iterators.hpp"
 
@@ -47,6 +48,7 @@ namespace ft
 			Node*					parent;
 			Node*					left;
 			Node*					right;
+			int						height;
 		};
 
 		public:
@@ -72,6 +74,7 @@ namespace ft
 		private:
 
 			Node*			_root;
+			Node*			_lastinsert;
 			size_type		_size;
 			key_compare		_comp;
 			allocator_type	_alloc;
@@ -90,7 +93,7 @@ namespace ft
 			*/
 			explicit map(const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type())
-			: _root(NULL), _size(0), _comp(comp), _alloc(alloc) {}
+			: _root(NULL), _lastinsert(NULL), _size(0), _comp(comp), _alloc(alloc) {}
 
 			/**
 			 * @brief range constructor: Constructs a container with as many
@@ -112,7 +115,7 @@ namespace ft
 				::is_integer, InputIterator>::type first, InputIterator last,
 				const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type())
-			: _root(NULL), _size(0), _comp(comp), _alloc(alloc)
+			: _root(NULL), _lastinsert(NULL), _size(0), _comp(comp), _alloc(alloc)
 			{
 				while (first != last)
 					this->insert(*first++);
@@ -126,7 +129,7 @@ namespace ft
 			 * contents are either copied or acquired.
 			*/
 			map(const map& x)
-			: _root(NULL), _size(0), _comp(x._comp), _alloc(x._alloc)
+			: _root(NULL), _lastinsert(NULL), _size(0), _comp(x._comp), _alloc(x._alloc)
 			{
 				const_iterator ite = x.end();
 				for (const_iterator it = x.begin(); it != ite; it++)
@@ -306,17 +309,10 @@ namespace ft
 			*/
 			mapped_type& operator[](const key_type& k)
 			{
-				Node* found = this->tree_search(_root, k);
-
-				if (found)
-					return (found->val.second);
-				found = Node_allocator(_alloc).allocate(1);
-				found->right = NULL;
-				found->left = NULL;
-				_alloc.construct(&found->val,
-					ft::make_pair(k, mapped_type()));
-				_root = this->tree_insert(_root, NULL, &found); //(_root, _Endnode, &found)
-				return (found->val.second);
+				_root = this->tree_insert(_root, NULL, ft::make_pair(k, mapped_type()));
+				Node* element = _lastinsert;
+				_lastinsert = NULL;
+				return (element->val.second);
 			}
 
 /*
@@ -331,16 +327,10 @@ namespace ft
 			*/
 			pair<iterator,bool> insert(const value_type& val)
 			{
-				Node* found = this->tree_search(_root, val.first);
-
-				if (found)
-					return (ft::pair<iterator, bool>(iterator(found), false));
-				found = Node_allocator(_alloc).allocate(1);
-				found->right = NULL;
-				found->left = NULL;
-				_alloc.construct(&found->val, val);
-				_root = this->tree_insert(_root, NULL, &found); //(_root, _Endnode, &found)
-				return (ft::pair<iterator, bool>(iterator(found), true));
+				_root = this->tree_insert(_root, NULL, val);
+				Node* newnode = _lastinsert;
+				_lastinsert = NULL;
+				return (ft::pair<iterator, bool>(iterator(newnode), true));
 			}
 
 			/**
@@ -356,9 +346,7 @@ namespace ft
 			iterator insert(iterator position, const value_type& val)
 			{
 				if (this->size() < 3)
-				{
 					return ((this->insert(val)).first);
-				}
 				while (position->first > val.first && position != this->begin())
 					position--;
 				iterator	tmp(position);
@@ -370,18 +358,18 @@ namespace ft
 				}
 				if (position->first == val.first)
 					return (position);
-				Node*	new_node = Node_allocator(_alloc).allocate(1);
-				new_node->right = NULL;
-				new_node->left = NULL;
-				_alloc.construct(&new_node->val, val);
 				Node* parent = position.getNode()->parent;
 				if (!parent)
-					_root = this->tree_insert(_root, NULL, &new_node);
+					_root = this->tree_insert(_root, NULL, val);
 				else
 				{
-					tree_insert(position.getNode()->parent, NULL, &new_node);
+					tree_insert(position.getNode()->parent, NULL, val);
+					while (_root->parent != NULL)
+						_root = _root->parent;
 					_root = this->tree_balance(_root);
 				}
+				Node*	new_node = _lastinsert;
+				_lastinsert = NULL;
 				return (iterator(new_node));
 			}
 
@@ -712,11 +700,9 @@ namespace ft
 			*/
 			int		tree_height(Node* node) const
 			{
-				int	height = 0;
 				if (node != NULL) // && node != _Endnode
-					height = std::max(tree_height(node->left),
-						tree_height(node->right)) + 1;
-				return (height);
+					return (node->height);
+				return (0);
 			}
 
 			/**
@@ -751,6 +737,8 @@ namespace ft
 				if (new_parent->left)
 					new_parent->left->parent = node;
 				new_parent->left = node;
+				node->height = std::max(tree_height(node->left), tree_height(node->right)) + 1;
+				new_parent->height = std::max(tree_height(new_parent->left), tree_height(new_parent->right)) + 1;
 				return (new_parent);
 			}
 
@@ -771,6 +759,8 @@ namespace ft
 				if (new_parent->right)
 					new_parent->right->parent = node;
 				new_parent->right = node;
+				node->height = std::max(tree_height(node->left), tree_height(node->right)) + 1;
+				new_parent->height = std::max(tree_height(new_parent->left), tree_height(new_parent->right)) + 1;
 				return (new_parent);
 			}
 
@@ -830,31 +820,48 @@ namespace ft
 				return (node);
 			}
 
+			Node*	tree_create_node(const value_type& val, Node* parent)
+			{
+				Node*	new_node = Node_allocator(_alloc).allocate(1);
+				new_node->right = NULL;
+				new_node->left = NULL;
+				new_node->height = 0;
+				new_node->parent = parent;
+				_alloc.construct(&new_node->val, val);
+				_size++;
+				_lastinsert = new_node;
+				return (new_node);
+			}
+
 			/**
 			 * @brief Insert a new node in the given subtree.
 			 * @return The new root of the tree
 			*/
-			Node*	tree_insert(Node* node, Node* parent, Node** new_node)
+			Node*	tree_insert(Node* node, Node* parent, const value_type& val)
 			{
 				if (node == NULL)
+					return (tree_create_node(val, parent));
+				if (node->val.first > val.first)
+					node->left = tree_insert(node->left, node, val);
+				else if (node->val.first < val.first)
+					node->right = tree_insert(node->right, node, val);
+				else
+					return (_lastinsert = node);
+				node->height = 1 + std::max(tree_height(node->left), tree_height(node->right));
+				int	factor = tree_getbalance(node);
+				if (factor > 1)
 				{
-					(*new_node)->parent = parent;
-					if (!_root)
-						_root = *new_node;
-					_size++;
-					return (node = *new_node);
+					if (tree_getbalance(node->left) >= 0)
+						return (tree_ll_rotate(node));
+					else
+						return (tree_lr_rotate(node));
 				}
-				else if ((*new_node)->val.first == node->val.first)
-					return (NULL);
-				else if ((*new_node)->val.first < node->val.first)
+				else if (factor < -1)
 				{
-					node->left = tree_insert(node->left, node, new_node);
-					return (this->tree_balance(node));
-				}
-				else if ((*new_node)->val.first > node->val.first)
-				{
-					node->right = tree_insert(node->right, node, new_node);
-					return (this->tree_balance(node));
+					if (tree_getbalance(node->right) <= 0)
+						return (tree_rr_rotate(node));
+					else
+						return (tree_rl_rotate(node));
 				}
 				return (node);
 			}
