@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/28 16:03:32 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/03 17:44:43 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/06 19:23:18 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,9 +63,9 @@ namespace ft
 			 * internal copy of this allocator.
 			*/
 			explicit vector(const allocator_type& alloc = allocator_type())
-			: _size(0), _capacity(0), _alloc(alloc)
+			: _size(0), _capacity(1), _alloc(alloc)
 			{
-				_head = _alloc.allocate(_capacity);
+				_head = _alloc.allocate(1);
 			}
 
 			/**
