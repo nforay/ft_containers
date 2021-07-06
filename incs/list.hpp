@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/16 23:33:56 by nforay            #+#    #+#             */
-/*   Updated: 2021/06/25 20:11:06 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/06 17:10:02 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -306,7 +306,7 @@ namespace ft
 			*/
 			size_type max_size() const
 			{
-				return (std::numeric_limits<size_type>::max() / (sizeof(Node) * 2));
+				return (Node_allocator(_alloc).max_size());
 			}
 
 /*
