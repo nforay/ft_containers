@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/01 16:21:43 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/04 19:14:37 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/06 17:08:42 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,13 +16,26 @@
 # include <memory>
 # include <limits>
 # include "utils.hpp"
-
-# include <iostream>
+# include "map_iterators.hpp"
 
 namespace ft
 {
 	/**
-	 * 
+	 * @brief Maps are associative containers that store elements formed by a
+	 * combination of a key value and a mapped value, following a specific
+	 * order. In a map, the key values are generally used to sort and uniquely
+	 * identify the elements, while the mapped values store the content
+	 * associated to this key. The types of key and mapped value may differ, and
+	 * are grouped together in member type value_type, which is a pair type
+	 * combining both: typedef pair<const Key, T> value_type;
+	 * @tparam Key Type of the keys. Each element in a map is uniquely
+	 * identified by its key value.
+	 * @tparam T Type of the mapped value. Each element in a map stores some
+	 * data as its mapped value.
+	 * @tparam Compare A binary predicate that takes two element keys as
+	 * arguments and returns a bool.
+	 * @tparam Alloc Type of the allocator object used to define the storage
+	 * allocation model.
 	*/
 	template <class Key, class T, class Compare = std::less<Key>
 	, class Alloc = std::allocator<ft::pair<const Key, T> > >
@@ -49,10 +62,10 @@ namespace ft
 			typedef typename allocator_type::const_reference	const_reference;
 			typedef typename allocator_type::pointer			pointer;
 			typedef typename allocator_type::const_pointer		const_pointer;
-			typedef List_iterator<T, Node>						iterator;
-			typedef List_const_iterator<T, Node>				const_iterator;
-			typedef List_const_reverse_iterator<T, Node>		const_reverse_iterator;
-			typedef List_reverse_iterator<T, Node>				reverse_iterator;
+			typedef Map_iterator<Key, T, Compare, Node>			iterator;
+			typedef Map_const_iterator<Key, T, Compare, Node>	const_iterator;
+			typedef Map_const_reverse_iterator<Key, T, Compare, Node>	const_reverse_iterator;
+			typedef Map_reverse_iterator<Key, T, Compare, Node>	reverse_iterator;
 			typedef ptrdiff_t									difference_type;
 			typedef size_t										size_type;
 
@@ -68,37 +81,35 @@ namespace ft
 			/**
 			 * @brief empty container constructor (default constructor):
 			 * Constructs an empty container, with no elements.
-			 * @tparam comp Binary predicate that, taking two element keys as
+			 * @param comp Binary predicate that, taking two element keys as
 			 * argument, returns true if the first argument goes before the
 			 * second argument in the strict weak ordering it defines, and false
 			 * otherwise. This shall be a function pointer or a function object.
-			 * @tparam alloc Allocator object. The container keeps and uses an
+			 * @param alloc Allocator object. The container keeps and uses an
 			 * internal copy of this allocator.
 			*/
 			explicit map(const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type())
-			: _root(NULL), _size(0), _comp(comp), _alloc(alloc)
-			{
-				
-			}
+			: _root(NULL), _size(0), _comp(comp), _alloc(alloc) {}
 
 			/**
 			 * @brief range constructor: Constructs a container with as many
 			 * elements as the range [first,last), with each element constructed
 			 * from its corresponding element in that range.
-			 * @tparam first,last Input iterators to the initial and final
+			 * @param first,last Input iterators to the initial and final
 			 * positions in a range. The range used is [first,last), which
 			 * includes all the elements between first and last, including the
 			 * element pointed by first but not the element pointed by last.
-			 * @tparam comp Binary predicate that, taking two element keys as
+			 * @param comp Binary predicate that, taking two element keys as
 			 * argument, returns true if the first argument goes before the
 			 * second argument in the strict weak ordering it defines, and false
 			 * otherwise. This shall be a function pointer or a function object.
-			 * @tparam alloc Allocator object. The container keeps and uses an
+			 * @param alloc Allocator object. The container keeps and uses an
 			 * internal copy of this allocator.
 			*/
 			template <class InputIterator>
-			map(InputIterator first, InputIterator last,
+			map(typename ft::enable_if<!std::numeric_limits<InputIterator>
+				::is_integer, InputIterator>::type first, InputIterator last,
 				const key_compare& comp = key_compare(),
 				const allocator_type& alloc = allocator_type())
 			: _root(NULL), _size(0), _comp(comp), _alloc(alloc)
@@ -110,14 +121,15 @@ namespace ft
 			/**
 			 * @brief Copy constructor: Constructs a container with a copy of
 			 * each of the elements in x.
-			 * @tparam x Another map object of the same type (with the same
+			 * @param x Another map object of the same type (with the same
 			 * class template arguments Key, T, Compare and Alloc), whose
 			 * contents are either copied or acquired.
 			*/
 			map(const map& x)
-			: _root(NULL), _size(0), _comp(x.comp), _alloc(x.alloc)
+			: _root(NULL), _size(0), _comp(x._comp), _alloc(x._alloc)
 			{
-				for (const_iterator it = x.begin(); it != x.end(); it++)
+				const_iterator ite = x.end();
+				for (const_iterator it = x.begin(); it != ite; it++)
 					this->insert(*it);
 			}
 
@@ -175,7 +187,10 @@ namespace ft
 			*/
 			iterator end()
 			{
-				return (iterator(this->tree_biggest(_root)->right));
+				if (this->empty())
+					return (iterator());
+				return (iterator((this->tree_biggest(_root))->right,
+					this->tree_biggest(_root)));
 			}
 
 			/**
@@ -186,7 +201,10 @@ namespace ft
 			*/
 			const_iterator end() const
 			{
-				return (const_iterator(this->tree_biggest(_root)->right));
+				if (this->empty())
+					return (iterator());
+				return (const_iterator((this->tree_biggest(_root))->right,
+					this->tree_biggest(_root)));
 			}
 
 			/**
@@ -220,7 +238,10 @@ namespace ft
 			*/
 			reverse_iterator rend()
 			{
-				return (reverse_iterator(this->tree_smallest(_root)->left));
+				if (this->empty())
+					return (reverse_iterator(_root));
+				return (reverse_iterator((this->tree_smallest(_root))->left,
+					this->tree_smallest(_root)));
 			}
 
 			/**
@@ -232,7 +253,10 @@ namespace ft
 			*/
 			const_reverse_iterator rend() const
 			{
-				return (const_reverse_iterator(this->tree_smallest(_root)->left));
+				if (this->empty())
+					return (const_reverse_iterator(_root));
+				return (const_reverse_iterator((this->tree_smallest(_root))->left,
+					this->tree_smallest(_root)));
 			}
 
 /*
@@ -290,8 +314,8 @@ namespace ft
 				found->right = NULL;
 				found->left = NULL;
 				_alloc.construct(&found->val,
-					make_pair(k, mapped_type()));
-				_root = this->tree_insert(_root, NULL, &found);
+					ft::make_pair(k, mapped_type()));
+				_root = this->tree_insert(_root, NULL, &found); //(_root, _Endnode, &found)
 				return (found->val.second);
 			}
 
@@ -315,7 +339,7 @@ namespace ft
 				found->right = NULL;
 				found->left = NULL;
 				_alloc.construct(&found->val, val);
-				_root = this->tree_insert(_root, NULL, &found);
+				_root = this->tree_insert(_root, NULL, &found); //(_root, _Endnode, &found)
 				return (ft::pair<iterator, bool>(iterator(found), true));
 			}
 
@@ -331,7 +355,34 @@ namespace ft
 			*/
 			iterator insert(iterator position, const value_type& val)
 			{
-				
+				if (this->size() < 3)
+				{
+					return ((this->insert(val)).first);
+				}
+				while (position->first > val.first && position != this->begin())
+					position--;
+				iterator	tmp(position);
+				tmp++;
+				while (position->first < val.first && tmp != this->end())
+				{
+					tmp++;
+					position++;
+				}
+				if (position->first == val.first)
+					return (position);
+				Node*	new_node = Node_allocator(_alloc).allocate(1);
+				new_node->right = NULL;
+				new_node->left = NULL;
+				_alloc.construct(&new_node->val, val);
+				Node* parent = position.getNode()->parent;
+				if (!parent)
+					_root = this->tree_insert(_root, NULL, &new_node);
+				else
+				{
+					tree_insert(position.getNode()->parent, NULL, &new_node);
+					_root = this->tree_balance(_root);
+				}
+				return (iterator(new_node));
 			}
 
 			/**
@@ -343,9 +394,11 @@ namespace ft
 			 * the container.
 			*/
 			template <class InputIterator>
-			void insert(InputIterator first, InputIterator last)
+			void insert(typename ft::enable_if<!std::numeric_limits<InputIterator>
+				::is_integer, InputIterator>::type first, InputIterator last)
 			{
-				
+				while (first != last)
+					this->insert(*first++);
 			}
 
 			/**
@@ -357,7 +410,12 @@ namespace ft
 			*/
 			void erase(iterator position)
 			{
-				
+				//_root = this->tree_delete(_root, position->first);
+				Node* parent = position.getNode()->parent;
+				if (!parent)
+					_root = this->tree_delete(_root, position->first);
+				else
+					parent = tree_delete(position.getNode()->parent, position->first);
 			}
 
 			/**
@@ -384,7 +442,9 @@ namespace ft
 			*/
 			void erase(iterator first, iterator last)
 			{
-
+				map todelete(first, last);
+				for (iterator it = todelete.begin(); it != todelete.end(); ++it)
+					this->erase(it->first);
 			}
 
 			/**
@@ -408,7 +468,7 @@ namespace ft
 			*/
 			void clear()
 			{
-				this->erase(this->begin(), this->end());
+				_root = this->tree_clear(_root);
 			}
 
 /*
@@ -438,7 +498,7 @@ namespace ft
 
 				bool operator()(const value_type &x, const value_type &y) const
 				{
-					return Compare(x.first, y.first);
+					return comp(x.first, y.first);
 				}
 
 				protected:
@@ -524,7 +584,10 @@ namespace ft
 			*/
 			iterator lower_bound(const key_type& k)
 			{
-				
+				iterator lower = this->begin();
+				while (lower != this->end() && !_comp(lower->first, k))
+					lower++;
+				return (lower);
 			}
 
 			/**
@@ -538,7 +601,10 @@ namespace ft
 			*/
 			const_iterator lower_bound(const key_type& k) const
 			{
-				
+				const_iterator lower = this->begin();
+				while (lower != this->end() && !_comp(lower->first, k))
+					lower++;
+				return (lower);
 			}
 
 			/**
@@ -551,7 +617,10 @@ namespace ft
 			*/
 			iterator upper_bound(const key_type& k)
 			{
-				
+				iterator upper = this->begin();
+				while (upper != this->end() && _comp(upper->first, k))
+					upper++;
+				return (upper);
 			}
 
 			/**
@@ -564,7 +633,10 @@ namespace ft
 			*/
 			const_iterator upper_bound(const key_type& k) const
 			{
-				
+				const_iterator upper = this->begin();
+				while (upper != this->end() && _comp(upper->first, k))
+					upper++;
+				return (upper);
 			}
 
 			/**
@@ -579,7 +651,11 @@ namespace ft
 			*/
 			pair<const_iterator,const_iterator> equal_range(const key_type& k) const
 			{
-				
+				pair<const_iterator, const_iterator> range;
+
+				range.first = this->lower_bound(k);
+				range.second = this->upper_bound(k);
+				return (range);
 			}
 
 			/**
@@ -594,7 +670,11 @@ namespace ft
 			*/
 			pair<iterator,iterator> equal_range(const key_type& k)
 			{
-				
+				pair<iterator, iterator> range;
+
+				range.first = this->lower_bound(k);
+				range.second = this->upper_bound(k);
+				return (range);
 			}
 
 /*
@@ -615,21 +695,6 @@ namespace ft
 ** ---------------------------- PRIVATE FUNCTIONS ------------------------------
 */
 
-			void print(void)//TEMP
-			{
-				std::cout << "root: " << _root->val.first << "=" << _root->val.second << std::endl;
-				inorder(_root, NULL);
-				std::cout << std::endl;
-			}
-			void inorder(Node *node, Node *parent) //TEMP DEBUG PRINT
-			{
-				if (node == NULL)
-					return;
-				inorder(node->left, node);
-				std::cout << node->val.first << "=" << node->val.second << " ";
-				inorder(node->right, node);
-			}
-
 		private:
 
 			template<class U>
@@ -648,7 +713,7 @@ namespace ft
 			int		tree_height(Node* node) const
 			{
 				int	height = 0;
-				if (node != NULL)
+				if (node != NULL) // && node != _Endnode
 					height = std::max(tree_height(node->left),
 						tree_height(node->right)) + 1;
 				return (height);
@@ -673,6 +738,7 @@ namespace ft
 			 * @brief Performs a Right-Right rotation of the given node.
 			 * This rotation is performed when a new node is inserted at the
 			 * right child of the right subtree.
+			 * @return The root of the new subtree.
 			*/
 			Node*	tree_rr_rotate(Node* node)
 			{
@@ -689,7 +755,10 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Performs a Left-Left rotation of the given node.
+			 * This rotation is performed when a new node is inserted at the
+			 * left child of the left subtree.
+			 * @return The root of the new subtree.
 			*/
 			Node*	tree_ll_rotate(Node* node)
 			{
@@ -706,7 +775,10 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Performs a Left-Right rotation of the given node.
+			 * This rotation is performed when a new node is inserted at the
+			 * right child of the left subtree.
+			 * @return The root of the new subtree.
 			*/
 			Node*	tree_lr_rotate(Node* node)
 			{
@@ -718,7 +790,10 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Performs a Right-Left rotation of the given node.
+			 * This rotation is performed when a new node is inserted at the
+			 * left child of the right subtree.
+			 * @return The root of the new subtree.
 			*/
 			Node*	tree_rl_rotate(Node* node)
 			{
@@ -730,7 +805,9 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Balance the given Tree
+			 * @param node The node where you want to start balancing.
+			 * @return The root of the AVL Tree
 			*/
 			Node*	tree_balance(Node* node)
 			{
@@ -754,7 +831,8 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Insert a new node in the given subtree.
+			 * @return The new root of the tree
 			*/
 			Node*	tree_insert(Node* node, Node* parent, Node** new_node)
 			{
@@ -763,6 +841,7 @@ namespace ft
 					(*new_node)->parent = parent;
 					if (!_root)
 						_root = *new_node;
+					_size++;
 					return (node = *new_node);
 				}
 				else if ((*new_node)->val.first == node->val.first)
@@ -781,9 +860,11 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Delete the node with the corresponding key in the given
+			 * subtree.
+			 * @return The root of the subtree
 			*/
-			Node*	tree_delete(Node* node, key_type key)
+			Node*	tree_delete(Node* node, const key_type& key)
 			{
 				if (node == NULL)
 					return (NULL);
@@ -791,30 +872,30 @@ namespace ft
 					node->left = tree_delete(node->left, key);
 				else if (node->val.first < key)
 					node->right = tree_delete(node->right, key);
-				Node*	tmp;
-				if ((node->right == NULL) || (node->left == NULL))
+				else
 				{
-					tmp = node->right ? node->right : node->left;
-					if (tmp == NULL)
+					if ((node->right == NULL) || (node->left == NULL))
 					{
-						tmp = node;
-						node = NULL;
+						Node* tmp = node->right ? node->right : node->left;
+						if (tmp == NULL)
+							swap(tmp, node);
+						else
+						{
+							_alloc.destroy(&node->val);
+							_alloc.construct(&node->val, tmp->val);
+							node->right = node->left = NULL;
+						}
+						_alloc.destroy(&tmp->val);
+						Node_allocator(_alloc).deallocate(tmp, 1);
+						_size--;
 					}
 					else
 					{
-						tmp->parent = node->parent;
-						*node = *tmp;
+						Node* tmp = this->tree_smallest(node->right);
+						_alloc.destroy(&node->val);
+						_alloc.construct(&node->val, tmp->val);
+						node->right = tree_delete(node->right, tmp->val.first);
 					}
-					_alloc.destroy(&tmp->val);
-					Node_allocator(_alloc).deallocate(tmp, 1);
-					_size--;
-				}
-				else
-				{
-					tmp = this->tree_smallest(node->right);
-					_alloc.destroy(&node->val);
-					_alloc.construct(&node->val, tmp->val);
-					node->right = tree_delete(node->right, tmp->val);
 				}
 				if (node == NULL)
 					return (node);
@@ -824,22 +905,40 @@ namespace ft
 					if (tree_getbalance(node->left) >= 0)
 						return (tree_ll_rotate(node));
 					else
-						return (this->tree_rl_rotate(node));
+						return (tree_lr_rotate(node));
 				}
 				else if (factor < -1)
 				{
 					if (tree_getbalance(node->right) <= 0)
 						return (tree_rr_rotate(node));
 					else
-						return (this->tree_lr_rotate(node));
+						return (tree_rl_rotate(node));
 				}
 				return (node);
 			}
 
 			/**
-			 * 
+			 * @brief Removes every node from the tree.
 			*/
-			Node*	tree_search(Node* node, key_type key)
+			Node*	tree_clear(Node* node)
+			{
+				if (!node)
+					return (NULL);
+				if (node->left)
+					tree_clear(node->left);
+				if (node->right)
+					tree_clear(node->right);
+				_alloc.destroy(&node->val);
+				Node_allocator(_alloc).deallocate(node, 1);
+				_size--;
+				return (NULL);
+			}
+
+			/**
+			 * @brief Find a node in the tree using the given key starting from
+			 * the given root
+			*/
+			Node*	tree_search(Node* node, const key_type& key) const
 			{
 				if (node == NULL)
 					return (NULL);
@@ -853,25 +952,89 @@ namespace ft
 			}
 
 			/**
-			 * 
+			 * @brief Returns the smallest node in the tree, it's the farthest
+			 * node on the left from the given node.
 			*/
-			Node*	tree_smallest(Node* node)
+			Node*	tree_smallest(Node* node) const
 			{
-				while (node->left != NULL)
+				while (node && node->left != NULL)
 					node = node->left;
 				return (node);
 			}
 
 			/**
-			 * 
+			 * @brief Returns the smallest node in the tree, it's the farthest
+			 * node on the right from the given node.
 			*/
-			Node*	tree_biggest(Node* node)
+			Node*	tree_biggest(Node* node) const
 			{
-				while (node->right != NULL)
+				while (node && node->right != NULL)
 					node = node->right;
 				return (node);
 			}
 	};
+
+/*
+** -------------------------------- OVERLOADS ----------------------------------
+*/
+
+	template <class Key, class T, class Compare, class Alloc>
+	bool operator<(const map<Key,T,Compare,Alloc>& lhs,
+		const map<Key,T,Compare,Alloc>& rhs)
+	{
+		return (ft::lexicographical_compare(lhs.begin(), lhs.end(),
+			rhs.begin(), rhs.end()));
+	}
+
+	template <class Key, class T, class Compare, class Alloc>
+	bool operator==(const map<Key,T,Compare,Alloc>& lhs,
+		const map<Key,T,Compare,Alloc>& rhs)
+	{
+		if (lhs.size() != rhs.size())
+			return (false);
+		return (ft::equal(lhs.begin(), lhs.end(), rhs.begin()));
+	}
+
+	template <class Key, class T, class Compare, class Alloc>
+	bool operator!=(const map<Key,T,Compare,Alloc>& lhs,
+		const map<Key,T,Compare,Alloc>& rhs)
+	{
+		return !(lhs == rhs);
+	}
+
+	template <class Key, class T, class Compare, class Alloc>
+	bool operator<=(const map<Key,T,Compare,Alloc>& lhs,
+		const map<Key,T,Compare,Alloc>& rhs)
+	{
+		return !(rhs < lhs);
+	}
+
+	template <class Key, class T, class Compare, class Alloc>
+	bool operator>(const map<Key,T,Compare,Alloc>& lhs,
+		const map<Key,T,Compare,Alloc>& rhs)
+	{
+		return (rhs < lhs);
+	}
+
+	template <class Key, class T, class Compare, class Alloc>
+	bool operator>=(const map<Key,T,Compare,Alloc>& lhs,
+		const map<Key,T,Compare,Alloc>& rhs)
+	{
+		return !(lhs < rhs);
+	}
+
+	/**
+	 * @brief The contents of container x are exchanged with those of y.
+	 * Both container objects must be of the same type (same template
+	 * parameters), although sizes may differ.
+	 * @param x,y list containers of the same type (i.e., having both
+	 * the same template parameters, Key, T, Compare and Alloc).
+	*/
+	template <class Key, class T, class Compare, class Alloc>
+	void swap(map<Key,T,Compare,Alloc>& x, map<Key,T,Compare,Alloc>& y)
+	{
+		x.swap(y);
+	}
 }
 
 #endif /* *********************************************************** MAP_HPP */
