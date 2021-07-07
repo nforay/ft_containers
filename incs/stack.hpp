@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/07 02:33:24 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/07 03:12:51 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/07 03:25:25 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -50,12 +50,10 @@ namespace ft
 			 * adaptor keeps internally a container object as data. This
 			 * container object is a copy of the ctnr argument passed to the
 			 * constructor, if any, otherwise it is an empty container.
+			 * @param ctnr Container object.
 			*/
 			explicit stack(const container_type& ctnr = container_type())
-			: _ctnr(ctnr)
-			{
-				
-			}
+			: _ctnr(ctnr) {}
 
 			/**
 			 * @brief Copy constructor: Constructs a container with a copy of
@@ -74,11 +72,11 @@ namespace ft
 			 * @return *this
 			*/
 			stack& operator=(const stack& x)
-            {
-                stack tmp(x);
-                swap(_ctnr, tmp._ctnr);
-                return *this;
-            }
+			{
+				stack tmp(x);
+				swap(_ctnr, tmp._ctnr);
+				return *this;
+			}
 
 			/**
 			 * @brief Returns whether the stack is empty: i.e. whether its size
