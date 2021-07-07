@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/01 16:21:43 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/06 19:44:49 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/07 02:30:41 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -129,7 +129,7 @@ namespace ft
 			 * contents are either copied or acquired.
 			*/
 			map(const map& x)
-			: _root(NULL), _lastinsert(NULL), _size(0), _comp(x._comp), _alloc(x._alloc)
+			: _root(NULL), _lastinsert(NULL), _size(0), _comp(key_compare()), _alloc(allocator_type())
 			{
 				const_iterator ite = x.end();
 				for (const_iterator it = x.begin(); it != ite; it++)
@@ -310,6 +310,7 @@ namespace ft
 			mapped_type& operator[](const key_type& k)
 			{
 				_root = this->tree_insert(_root, NULL, ft::make_pair(k, mapped_type()));
+				_root = tree_balance(_root);
 				Node* element = _lastinsert;
 				_lastinsert = NULL;
 				return (element->val.second);
@@ -324,13 +325,20 @@ namespace ft
 			 * effectively increasing the container size by one.
 			 * @param val Value to be copied to (or moved as) the inserted
 			 * element.
+			 * @return Return a pair with its member pair::first set to an
+			 * iterator pointing to either the newly inserted element or to the
+			 * element with an equivalent key in the map. The pair::second
+			 * element in the pair is set to true if a new element was inserted
+			 * or false if an equivalent key already existed.
 			*/
 			pair<iterator,bool> insert(const value_type& val)
 			{
+				size_type size_before = this->size();
 				_root = this->tree_insert(_root, NULL, val);
 				Node* newnode = _lastinsert;
 				_lastinsert = NULL;
-				return (ft::pair<iterator, bool>(iterator(newnode), true));
+				return (ft::pair<iterator, bool>(iterator(newnode),
+					(this->size() > size_before)));
 			}
 
 			/**
@@ -398,12 +406,7 @@ namespace ft
 			*/
 			void erase(iterator position)
 			{
-				//_root = this->tree_delete(_root, position->first);
-				Node* parent = position.getNode()->parent;
-				if (!parent)
-					_root = this->tree_delete(_root, position->first);
-				else
-					parent = tree_delete(position.getNode()->parent, position->first);
+				_root = this->tree_delete(_root, position->first);
 			}
 
 			/**
@@ -430,8 +433,8 @@ namespace ft
 			*/
 			void erase(iterator first, iterator last)
 			{
-				map todelete(first, last);
-				for (iterator it = todelete.begin(); it != todelete.end(); ++it)
+				map tmp(first, last);
+				for (reverse_iterator it = tmp.rbegin(); it != tmp.rend(); ++it)
 					this->erase(it->first);
 			}
 
@@ -573,7 +576,8 @@ namespace ft
 			iterator lower_bound(const key_type& k)
 			{
 				iterator lower = this->begin();
-				while (lower != this->end() && !_comp(lower->first, k))
+				iterator end = this->end();
+				while (lower != end && _comp(lower->first, k))
 					lower++;
 				return (lower);
 			}
@@ -590,7 +594,8 @@ namespace ft
 			const_iterator lower_bound(const key_type& k) const
 			{
 				const_iterator lower = this->begin();
-				while (lower != this->end() && !_comp(lower->first, k))
+				const_iterator end = this->end();
+				while (lower != end && _comp(lower->first, k))
 					lower++;
 				return (lower);
 			}
@@ -606,7 +611,8 @@ namespace ft
 			iterator upper_bound(const key_type& k)
 			{
 				iterator upper = this->begin();
-				while (upper != this->end() && _comp(upper->first, k))
+				iterator end = this->end();
+				while (upper != end && !_comp(k, upper->first))
 					upper++;
 				return (upper);
 			}
@@ -622,7 +628,8 @@ namespace ft
 			const_iterator upper_bound(const key_type& k) const
 			{
 				const_iterator upper = this->begin();
-				while (upper != this->end() && _comp(upper->first, k))
+				const_iterator end = this->end();
+				while (upper != end && !_comp(k, upper->first))
 					upper++;
 				return (upper);
 			}
@@ -700,7 +707,7 @@ namespace ft
 			*/
 			int		tree_height(Node* node) const
 			{
-				if (node != NULL) // && node != _Endnode
+				if (node != NULL)
 					return (node->height);
 				return (0);
 			}
@@ -772,10 +779,7 @@ namespace ft
 			*/
 			Node*	tree_lr_rotate(Node* node)
 			{
-				Node*	new_parent;
-
-				new_parent = node->left;
-				node->left = this->tree_rr_rotate(new_parent);
+				node->left = this->tree_rr_rotate(node->left);
 				return (this->tree_ll_rotate(node));
 			}
 
@@ -787,10 +791,7 @@ namespace ft
 			*/
 			Node*	tree_rl_rotate(Node* node)
 			{
-				Node*	new_parent;
-
-				new_parent = node->right;
-				node->right = this->tree_ll_rotate(new_parent);
+				node->right = this->tree_ll_rotate(node->right);
 				return (this->tree_rr_rotate(node));
 			}
 
@@ -825,7 +826,7 @@ namespace ft
 				Node*	new_node = Node_allocator(_alloc).allocate(1);
 				new_node->right = NULL;
 				new_node->left = NULL;
-				new_node->height = 0;
+				new_node->height = 1;
 				new_node->parent = parent;
 				_alloc.construct(&new_node->val, val);
 				_size++;
@@ -841,9 +842,9 @@ namespace ft
 			{
 				if (node == NULL)
 					return (tree_create_node(val, parent));
-				if (node->val.first > val.first)
+				if (_comp(val.first, node->val.first))
 					node->left = tree_insert(node->left, node, val);
-				else if (node->val.first < val.first)
+				else if (_comp(node->val.first, val.first))
 					node->right = tree_insert(node->right, node, val);
 				else
 					return (_lastinsert = node);
@@ -875,9 +876,9 @@ namespace ft
 			{
 				if (node == NULL)
 					return (NULL);
-				if (node->val.first > key)
+				if (_comp(key, node->val.first))
 					node->left = tree_delete(node->left, key);
-				else if (node->val.first < key)
+				else if (_comp(node->val.first, key))
 					node->right = tree_delete(node->right, key);
 				else
 				{
@@ -951,16 +952,16 @@ namespace ft
 					return (NULL);
 				if (!_comp(node->val.first, key) && !_comp(key, node->val.first))
 					return (node);
-				if (node->val.first > key)
+				if (_comp(key, node->val.first))
 					return (tree_search(node->left, key));
-				else if (node->val.first < key)
+				else if (_comp(node->val.first, key))
 					return (tree_search(node->right, key));
 				return (NULL);
 			}
 
 			/**
 			 * @brief Returns the smallest node in the tree, it's the farthest
-			 * node on the left from the given node.
+			 * node on the left from the root.
 			*/
 			Node*	tree_smallest(Node* node) const
 			{
@@ -970,8 +971,8 @@ namespace ft
 			}
 
 			/**
-			 * @brief Returns the smallest node in the tree, it's the farthest
-			 * node on the right from the given node.
+			 * @brief Returns the biggest node in the tree, it's the farthest
+			 * node on the right from the root.
 			*/
 			Node*	tree_biggest(Node* node) const
 			{

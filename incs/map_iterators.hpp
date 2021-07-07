@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/04 19:17:59 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/06 16:55:06 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/07 02:30:54 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,10 @@ namespace ft
 			Map_iterator& operator=(const Map_iterator& it)
 			{
 				if (this != &it)
+				{
 					m_node = it.m_node;
+					m_endnode = it.m_endnode;
+				}
 				return (*this);
 			}
 
@@ -233,7 +236,10 @@ namespace ft
 			Map_reverse_iterator& operator=(const Map_reverse_iterator& it)
 			{
 				if (this != &it)
+				{
 					m_base = it.m_base;
+					m_base.operator++();
+				}
 				return (*this);
 			}
 			bool operator==(const Map_reverse_iterator& it) const
