@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/24 03:33:28 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/07 03:42:41 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/07 03:47:01 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,11 +34,11 @@ namespace ft
 		while (first1 != last1)
 		{
 			if (*first1 != *first2)
-				return false;
+				return (false);
 			++first1;
 			++first2;
 		}
-		return true;
+		return (true);
 	}
 
 	template <class Ite1, class Ite2>
@@ -70,7 +70,7 @@ namespace ft
 			pair(const first_type& x, const second_type& y)
 			: first(x), second(y) {}
 			template<class U, class V>
-			pair(const pair<U, V>& src) : first(src.first), second(src.second) {}
+			pair(const pair<U,V>& src) : first(src.first), second(src.second) {}
 			~pair() {}
 
 			pair& operator=(const pair& other)
@@ -87,51 +87,51 @@ namespace ft
 	template<class T1, class T2>
 	bool operator==(const ft::pair<T1,T2>& lhs, const ft::pair<T1,T2>& rhs)
 	{
-		return lhs.first == rhs.first && lhs.second == rhs.second;
+		return (lhs.first == rhs.first && lhs.second == rhs.second);
 	}
 
-	template< class T1, class T2 >
+	template<class T1, class T2>
 	bool operator!=(const ft::pair<T1,T2>& lhs, const ft::pair<T1,T2>& rhs)
 	{
-		return !(lhs == rhs);
+		return (!(lhs == rhs));
 	}
 
-	template< class T1, class T2 >
+	template<class T1, class T2>
 	bool operator<(const ft::pair<T1,T2>& lhs, const ft::pair<T1,T2>& rhs)
 	{
 		if (lhs.first < rhs.first)
-			return true;
+			return (true);
 		if (lhs.second < rhs.second)
-			return true;
-		return false;
+			return (true);
+		return (false);
 	}
 
-	template< class T1, class T2 >
+	template<class T1, class T2>
 	bool operator<=(const ft::pair<T1,T2>& lhs, const ft::pair<T1,T2>& rhs)
 	{
 		if (lhs.first <= rhs.first)
-			return true;
+			return (true);
 		if (lhs.second <= rhs.second)
-			return true;
-		return false;
+			return (true);
+		return (false);
 	}
 
-	template< class T1, class T2 >
+	template<class T1, class T2>
 	bool operator>(const ft::pair<T1,T2>& lhs, const ft::pair<T1,T2>& rhs)
 	{
-		return !(lhs <= rhs);
+		return (!(lhs <= rhs));
 	}
 
-	template< class T1, class T2 >
+	template<class T1, class T2>
 	bool operator>=(const ft::pair<T1,T2>& lhs, const ft::pair<T1,T2>& rhs)
 	{
-		return !(lhs < rhs);
+		return (!(lhs < rhs));
 	}
 
 	template<class T1, class T2>
 	ft::pair<T1,T2> make_pair(T1 t, T2 u)
 	{
-		return ft::pair<T1, T2>(t, u);
+		return (ft::pair<T1, T2>(t, u));
 	}
 }
 
