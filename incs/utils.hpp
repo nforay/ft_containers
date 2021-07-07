@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/24 03:33:28 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/05 19:32:15 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/07 03:42:41 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,7 +73,7 @@ namespace ft
 			pair(const pair<U, V>& src) : first(src.first), second(src.second) {}
 			~pair() {}
 
-			/*pair& operator=(const pair& other)
+			pair& operator=(const pair& other)
 			{
 				if (this != &other)
 				{
@@ -81,7 +81,7 @@ namespace ft
 					second = other.second;
 				}
 				return (*this);
-			}*/
+			}
 	};
 
 	template<class T1, class T2>
