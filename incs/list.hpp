@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/16 23:33:56 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/06 17:10:02 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/07 16:58:26 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -244,7 +244,7 @@ namespace ft
 			*/
 			const_reverse_iterator rbegin() const
 			{
-				return (const_reverse_iterator(_head->prev));
+				return (const_iterator(_head->prev));
 			}
 
 			/**
@@ -272,7 +272,7 @@ namespace ft
 			*/
 			const_reverse_iterator rend() const
 			{
-				return (const_reverse_iterator(_head));
+				return (const_iterator(_head));
 			}
 
 /*
@@ -376,7 +376,7 @@ namespace ft
 				!std::numeric_limits<InputIterator>::is_integer, InputIterator>
 				::type first, InputIterator last)
 			{
-				clear();
+				this->clear();
 				this->insert(this->begin(), first, last);
 			}
 
@@ -391,19 +391,8 @@ namespace ft
 			*/
 			void assign(size_type n, const value_type& val)
 			{
-				size_type	i = 0;
-				for (iterator it = this->begin(); i < n; ++it, ++i)
-				{
-					if (i >= this->size())
-						this->push_back(val);
-					else
-					{
-						_alloc.destroy(&(*it));
-						Node_allocator(_alloc).construct(&(*it), val);
-					}
-				}
-				while (this->size() > i)
-					this->pop_back();
+				this->clear();
+				this->insert(this->begin(), n, val);
 			}
 
 			/**
@@ -466,15 +455,14 @@ namespace ft
 			*/
 			void pop_back()
 			{
-				if (!this->empty())
-				{
-					Node *element = _head->prev;
-					_head->prev = element->prev;
-					_head->prev->next = _head;
-					_alloc.destroy(&element->val);
-					Node_allocator(_alloc).deallocate(element, 1);
-					_size--;
-				}
+				if (this->empty())
+					return;
+				Node *element = _head->prev;
+				_head->prev = element->prev;
+				_head->prev->next = _head;
+				_alloc.destroy(&element->val);
+				Node_allocator(_alloc).deallocate(element, 1);
+				_size--;
 			}
 
 			/**
@@ -757,7 +745,7 @@ namespace ft
 			*/
 			void unique()
 			{
-				this->unique(is_equal<value_type>);
+				this->unique(this->is_equal<value_type>);
 			}
 
 			/**
@@ -871,7 +859,7 @@ namespace ft
 					for (iterator itr = it; itr != this->end(); itr++)
 						if (comp(*itr, *it))
 						{
-							swap(it.getNode(), itr.getNode());
+							swap_order(it.getNode(), itr.getNode());
 							swap(it, itr);
 						}
 				}
@@ -882,10 +870,12 @@ namespace ft
 			*/
 			void reverse()
 			{
-				for (iterator it = this->begin(), ite = --(this->end());
-					it != ite; it++, ite--)
+				if (this->size() <= 1)
+					return;
+				iterator it = this->begin(), ite = --(this->end());
+				for (size_type i = (this->size() / 2); i != 0; it++, ite--, i--)
 				{
-					swap(it.getNode(), ite.getNode());
+					swap_order(it.getNode(), ite.getNode());
 					swap(it, ite);
 				}
 			}
@@ -918,7 +908,7 @@ namespace ft
 				u1 = tmp;
 			}
 
-			void swap(Node* A, Node* B)
+			void swap_order(Node* A, Node* B)
 			{
 				Node	*ptrVec[] = {A->prev, B->prev, A->next, B->next};
 

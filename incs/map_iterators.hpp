@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/04 19:17:59 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/07 02:30:54 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/07 04:19:56 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -299,6 +299,14 @@ namespace ft
 			{
 				this->m_base = from.getNode();
 				this->m_base.operator--();
+			}
+			Map_const_reverse_iterator(NodePtr node = NULL)
+			{
+				this->m_base = Map_iterator<Key,T,Compare,Node>(node);
+			}
+			Map_const_reverse_iterator(NodePtr node, NodePtr endnode)
+			{
+				this->m_base = Map_iterator<Key,T,Compare,Node>(node, endnode);
 			}
 			Map_const_reverse_iterator(Map_const_iterator<Key,T,Compare,Node> from)
 			{
