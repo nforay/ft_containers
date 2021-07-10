@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/07/07 03:14:41 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/07 03:35:56 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/07 23:42:37 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,9 +39,16 @@ namespace ft
 			typedef Container	container_type;
 			typedef size_t		size_type;
 
-		private:
-
-			container_type		_ctnr;
+		protected:
+			/*  Maintainers wondering why this isn't uglified as per style
+			*  guidelines should note that this name is specified in the standard,
+			*  C++98 [23.2.3.1].
+			*  (Why? Presumably for the same reason that it's protected instead
+			*  of private: to allow derivation.  But none of the other
+			*  containers allow for derivation.  Odd.)
+			*/
+			///  @c c is the underlying container.
+			container_type		c;
 
 		public:
 
@@ -53,7 +60,7 @@ namespace ft
 			 * @param ctnr Container object. 
 			*/
 			explicit queue(const container_type& ctnr = container_type())
-			: _ctnr(ctnr) {}
+			: c(ctnr) {}
 
 			/**
 			 * @brief Copy constructor: Constructs a container with a copy of
@@ -62,7 +69,7 @@ namespace ft
 			 * class template arguments T and Container), whose
 			 * contents are either copied or acquired.
 			*/
-			queue(const queue& x) : _ctnr(x._ctnr) {}
+			queue(const queue& x) : c(x.c) {}
 
 			~queue() {}
 
@@ -74,7 +81,7 @@ namespace ft
 			queue& operator=(const queue& x)
 			{
 				queue tmp(x);
-				swap(_ctnr, tmp._ctnr);
+				swap(c, tmp.c);
 				return *this;
 			}
 
@@ -86,7 +93,7 @@ namespace ft
 			*/
 			bool empty() const
 			{
-				return (_ctnr.empty());
+				return (c.empty());
 			}
 
 			/**
@@ -95,7 +102,7 @@ namespace ft
 			*/
 			size_type size() const
 			{
-				return (_ctnr.size());
+				return (c.size());
 			}
 
 			/**
@@ -107,7 +114,7 @@ namespace ft
 			*/
 			value_type& front()
 			{
-				return (_ctnr.front());
+				return (c.front());
 			}
 
 			/**
@@ -119,7 +126,7 @@ namespace ft
 			*/
 			const value_type& front() const
 			{
-				return (_ctnr.front());
+				return (c.front());
 			}
 
 			/**
@@ -130,7 +137,7 @@ namespace ft
 			*/
 			value_type& back()
 			{
-				return (_ctnr.back());
+				return (c.back());
 			}
 
 			/**
@@ -141,7 +148,7 @@ namespace ft
 			*/
 			const value_type& back() const
 			{
-				return (_ctnr.back());
+				return (c.back());
 			}
 
 			/**
@@ -152,7 +159,7 @@ namespace ft
 			*/
 			void push(const value_type& val)
 			{
-				_ctnr.push_back(val);
+				c.push_back(val);
 			}
 
 			/**
@@ -163,17 +170,17 @@ namespace ft
 			*/
 			void pop()
 			{
-				_ctnr.pop_front();
+				c.pop_front();
 			}
 
 			friend bool operator==(const queue<T,Container>& lhs, const queue<T,Container>& rhs)
 			{
-				return (lhs._ctnr == rhs._ctnr);
+				return (lhs.c == rhs.c);
 			}
 
 			friend bool operator<(const queue<T,Container>& lhs, const queue<T,Container>& rhs)
 			{
-				return (lhs._ctnr < rhs._ctnr);
+				return (lhs.c < rhs.c);
 			}
 	};
 
