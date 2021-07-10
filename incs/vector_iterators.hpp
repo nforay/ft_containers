@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/20 19:28:07 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/01 16:00:26 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/07 04:21:07 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -326,6 +326,10 @@ namespace ft
 			{
 				Vector_iterator<T> tmp(from);
 				this->m_base = --tmp;
+			}
+			Vector_const_reverse_iterator(pointer ptr = NULL)
+			{
+				this->m_base = Vector_iterator<T>(ptr);
 			}
 			Vector_const_reverse_iterator(Vector_const_iterator<T> from)
 			{

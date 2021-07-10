@@ -6,7 +6,7 @@
 /*   By: nforay <nforay@student.42.fr>              +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2021/06/28 16:03:32 by nforay            #+#    #+#             */
-/*   Updated: 2021/07/06 19:23:18 by nforay           ###   ########.fr       */
+/*   Updated: 2021/07/07 21:03:41 by nforay           ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -105,7 +105,7 @@ namespace ft
 				const allocator_type& alloc = allocator_type())
 			: _size(0), _capacity(0), _alloc(alloc)
 			{
-				assign(first, last);
+				this->assign(first, last);
 			}
 
 			/**
@@ -504,8 +504,8 @@ namespace ft
 					++tmp;
 					++n;
 				}
-				this->reserve(n);
 				this->clear();
+				this->reserve(n);
 				for (; first != last; first++)
 					push_back(*first);
 			}
@@ -524,8 +524,8 @@ namespace ft
 			*/
 			void assign(size_type n, const value_type& val)
 			{
-				this->reserve(n);
 				this->clear();
+				this->reserve(n);
 				for (size_type i = 0; i < n; i++)
 					this->push_back(val);
 			}
@@ -538,7 +538,7 @@ namespace ft
 			*/
 			void push_back(const value_type& val)
 			{
-				if ((_size + 1) > _capacity)
+				if (_size ==_capacity)
 					reallocate(grow(_size + 1));
 				_alloc.construct(&_head[_size++], val);
 			}
@@ -567,7 +567,9 @@ namespace ft
 			iterator insert(iterator position, const value_type& val)
 			{
 				difference_type shift = (position - this->begin());
-				this->insert(position, 1, val);
+				if (_size + 1 > _capacity)
+					reallocate(grow(_size + 1));
+				this->insert(iterator(this->begin() + shift), 1, val);
 				return (iterator(this->begin() + shift));
 			}
 
@@ -584,19 +586,23 @@ namespace ft
 			*/
 			void insert(iterator position, size_type n, const value_type& val)
 			{
-				if (!n)
+				if (n == 0)
 					return;
-				difference_type shift = (position - this->begin());
-				if ((_size + n) > _capacity)
-					reallocate(grow(_size + n));
-				_size += n;
-				iterator it(&_head[_size - n]);
-				iterator insert_pos(&_head[shift]);
-				iterator it_end = this->end();
-				while (it >= insert_pos)
-					*--it_end = *--it;
+				difference_type shift = position - this->begin();
+				difference_type tmp = this->end() - this->begin();
+
+				this->resize(this->_size + n);
+				iterator end = this->end();
+				position = this->begin() + shift;
+				iterator tmp_end = this->begin() + tmp;
+				while (tmp_end != position)
+				{
+					--end;
+					--tmp_end;
+					*end = *tmp_end;
+				}
 				while (n--)
-					_alloc.construct(&(*insert_pos++), val);
+					*position++ = val;
 			}
 
 			/**
@@ -623,7 +629,7 @@ namespace ft
 					++n;
 				}
 				if ((_size + n) > _capacity)
-					reallocate(grow(_size + n));
+					reallocate(_size + n);
 				_size += n;
 				iterator it(&_head[_size - n]);
 				iterator insert_pos(&_head[shift]);
@@ -664,13 +670,15 @@ namespace ft
 			*/
 			iterator erase(iterator first, iterator last)
 			{
+				if (this->empty())
+					return (last);
 				size_type n = last - first;
 				iterator ret(first);
 
 				while (last != this->end())
 					*(first++) = *(last++);
 				while (n--)
-					_alloc.destroy(&_head[_size--]);
+					_alloc.destroy(&_head[--_size]);
 				return (ret);
 			}
 
@@ -699,8 +707,9 @@ namespace ft
 			*/
 			void clear()
 			{
-				if (!this->empty())
-					erase(this->begin(), this->end());
+				for (size_t i = 0; i < _size; ++i)
+					_alloc.destroy(&_head[i]);
+				_size = 0;
 			}
 
 /*
